@@ -44,14 +44,19 @@ works offline and never hits these hosts at start-up.
 | `provinces.json` | wilayah.id (Kemendagri codes) + curated capitals | 38 provinces: code, name, capital, capital coordinates, island group, bbox (from regency polygons) | Kemendagri public data; wilayah.id API is MIT |
 | `regencies.json` | wilayah.id | 514 kabupaten/kota: code, name, province, centroid, bbox | as above |
 | `local_data/indonesia/regencies.geojson` | BNPB GIS `Hosted/Admin_kabkot_2023` (Kemendagri boundaries), simplified 0.01° | 514 polygons, 1.9 MB | BNPB public service; attribution "Batas administrasi: BNPB / Kemendagri" |
+| `local_data/indonesia/provinces.geojson` | Derived offline: regency polygons dissolved per province code (`scripts/build-indonesia-provinces.mjs`, Turf union) | 38 polygons, 1.2 MB | Same BNPB / Kemendagri attribution, marked "diturunkan (dissolve)" |
 | `volcanoes.json` | Wikidata SPARQL (instances of volcano in Indonesia with coordinates) | 139 volcanoes: name, position, elevation | CC0 |
 | `airports.json` | OurAirports `airports.csv`, `iso_country = ID`, large/medium/small | 624 airports: ident, IATA, name, position, municipality, ISO region | Public domain |
 | `weatherPoints.json` | wilayah.id + BMKG validation | 26 city points with their BMKG `adm4` codes | Kemendagri codes |
 
-Province polygons are not bundled separately: `Hosted/Admin_Prov` returned
-HTTP 500 during the build. The GIS map outlines a province by selecting its
-regencies (`code` prefix), and `scripts/build-indonesia-pack.mjs` writes
-`provinces.geojson` automatically the next time that service answers.
+BNPB's `Hosted/Admin_Prov` service returned HTTP 500 during every build, so
+province polygons are derived instead of downloaded: `scripts/build-indonesia-provinces.mjs`
+unions the regency polygons per two-digit province code (Papua Barat Daya's
+Raja Ampat islands fail the union and are kept as their member polygons).
+`scripts/build-indonesia-pack.mjs` still prefers the official layer whenever
+that service answers. The GIS map draws the dissolved outlines, highlights the
+focused province from them, and falls back to grouping regencies by code
+prefix while `provinces.geojson` is absent.
 
 ## Sources checked and not used
 

@@ -320,10 +320,15 @@ losing your place.
 | **SOURCES** | Provider health: state, cadence, last run, event count, license, attribution, and which optional key is missing. | engine |
 
 The **GIS map** (MapLibre GL, keyless OpenFreeMap / Esri basemaps) draws the
-514 kabupaten/kota boundaries (BNPB / Kemendagri 2023), the same events,
-624 airports, and 139 volcanoes, and adds a spatial toolbox: measure, buffer
+38 province outlines and 514 kabupaten/kota boundaries (BNPB / Kemendagri
+2023), the same events (as points or a severity-weighted heatmap), 624
+airports, and 139 volcanoes, and adds a spatial toolbox: measure, buffer
 (events inside, nearest airport/volcano), point weather, province focus, and
 GeoJSON/CSV export with attribution.
+
+Share links carry the Indonesia state too: one `idn` hash field records
+Indonesia mode, the focused province, and whether the GIS map was open, and a
+recipient lands in the same view after the shared camera settles.
 
 Everything Indonesian is keyless. The engine sweeps each source on its own
 cadence under `npm run dev` (no second server), keeps sweep history in

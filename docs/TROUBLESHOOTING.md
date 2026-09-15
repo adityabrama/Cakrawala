@@ -40,7 +40,10 @@ the SPATIAL ANALYSIS panel.
 
 **Boundaries missing.** `GET /api/intel/boundaries/regencies` must return the
 1.9 MB bundled GeoJSON. If it returns 404, run
-`node scripts/build-indonesia-pack.mjs`.
+`node scripts/build-indonesia-pack.mjs`, then
+`node scripts/build-indonesia-provinces.mjs` for the province outlines
+(`/api/intel/boundaries/provinces`). The pack is read once per server start,
+so restart `npm run dev` after rebuilding it.
 
 **Basemap draws, but no boundaries, events or airports (and no console
 error).** MapLibre parses vector tiles and GeoJSON in a web worker that it

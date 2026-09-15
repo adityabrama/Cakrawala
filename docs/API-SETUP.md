@@ -28,6 +28,12 @@ links.
 Engine switch: `GEV_INTEL_ENABLED=false` turns the intelligence sweeps off
 (the `/api/intel/*` endpoints then answer with empty data).
 
+Every free key above, ReliefWeb included, can be entered in the app's POWER UP
+/ Provider Settings panel instead of a file: the dev server writes it to
+`.env` (or to `pinokio/ENVIRONMENT` under Pinokio, which Pinokio imports into
+every launch) and restarts itself. Keys never pass through the browser bundle
+or a chat window.
+
 ## Windows (PowerShell) setup
 
 ```powershell

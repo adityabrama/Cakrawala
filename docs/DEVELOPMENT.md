@@ -7,6 +7,7 @@ npm test                     # 2 900+ unit tests (node:test)
 npm run build                # production bundle → dist/
 npm run preview              # serve dist/ with the same proxies and engine
 node scripts/build-indonesia-pack.mjs   # refresh bundled Indonesia data (network)
+node scripts/build-indonesia-provinces.mjs   # dissolve regency polygons into province outlines (offline)
 ```
 
 One command starts everything: the Vite plugins in `vite.config.js` host the

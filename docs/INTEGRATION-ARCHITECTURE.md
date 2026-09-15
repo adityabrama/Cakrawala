@@ -213,4 +213,6 @@ Phase order follows the master prompt §70. ☑ = done in this branch.
 - [x] P20 Documentation (README, DATA_SOURCES, INDONESIA-DATA-SOURCES, API-SETUP, TROUBLESHOOTING, DEVELOPMENT, ARCHITECTURE, THIRD_PARTY_NOTICES)
 - [x] P21 Production build (`npm run build` passes)
 
-Not done in this phase (documented follow-ups): DuckDB-WASM local file analysis, deck.gl heatmaps (the GIS map uses circle layers; the globe uses point primitives), province polygons as a separate dataset (BNPB `Admin_Prov` returned HTTP 500 — regencies are grouped by code instead), LLM-written briefs (rule-based brief only), share-link tokens for Indonesia mode state (kept per browser on purpose).
+Also delivered after the first pass: province outlines as a bundled dataset (dissolved from the regency polygons because BNPB `Admin_Prov` returns HTTP 500), a severity-weighted event heatmap layer in the GIS map (MapLibre `heatmap`, off by default), share-link support for Indonesia mode / province / GIS mode via one allowlisted `idn` hash field (`ShareLinkManager.setExtraStateProvider`; core camera and visual fields can never be overridden by it), and ReliefWeb in the in-app Provider Settings panel.
+
+Not done in this phase (documented follow-ups): DuckDB-WASM local file analysis, deck.gl layers (the GIS map uses MapLibre circle/heatmap layers; the globe uses point primitives), LLM-written briefs (rule-based brief only).
