@@ -50,7 +50,7 @@ const ATTRIBUTION_NOTE = 'Exports carry per-event attribution (BMKG, BNPB, PVMBG
  * @param {(lat:number, lon:number) => Promise<object>} options.queryWeather Point weather lookup.
  * @param {() => void} options.onExit Back to 3D.
  */
-export function createGisPanel({ root, gisMap, state, getEvents, getPack, getBoundaries, queryWeather, onExit }) {
+export function createGisPanel({ root, gisMap, state, getEvents, getPack, getBoundaries, getProvinceBoundaries = () => null, queryWeather, onExit }) {
   let mode = 'none';
   let measureStart = null;
   let lastResultEvents = [];
@@ -111,7 +111,12 @@ export function createGisPanel({ root, gisMap, state, getEvents, getPack, getBou
     if (province.bbox) gisMap.fitBounds(province.bbox);
     const members = (boundaries?.features || []).filter((feature) => String(feature.properties.code).startsWith(code));
     const events = getEvents();
-    const inside = members.length ? eventsWithinPolygon(events, unionPolygons(...members)) : events.filter((event) => event.provinceCode === code);
+    // Prefer the dissolved province polygon; unioning members on the fly is
+    // the fallback while provinces.geojson has not arrived.
+    const outline = (getProvinceBoundaries()?.features || []).find((feature) => String(feature.properties.code) === code) || null;
+    const inside = outline ? eventsWithinPolygon(events, outline)
+      : members.length ? eventsWithinPolygon(events, unionPolygons(...members))
+        : events.filter((event) => event.provinceCode === code);
     const byType = {};
     for (const event of inside) byType[event.type] = (byType[event.type] || 0) + 1;
     const airports = pack.airports.filter((airport) => airport.region === `ID-${provinceIso(province)}`);
@@ -197,9 +202,9 @@ export function createGisPanel({ root, gisMap, state, getEvents, getPack, getBou
     if (kind === 'volcanoes') gisMap.popup(lngLat, `<strong>${escapeHtml(properties.name)}</strong><br>${properties.elevationM ? `${properties.elevationM} m` : ''}<br><small>Position: Wikidata (CC0) · levels: PVMBG</small>`);
   }
 
-  const layerToggles = ['regencies', 'events', 'airports', 'volcanoes'].map((key) => {
+  const layerToggles = ['provinces', 'regencies', 'events', 'heatmap', 'airports', 'volcanoes'].map((key) => {
     const input = h('input', { type: 'checkbox', checked: gisMap.getLayerVisibility()[key] || null, onchange: () => gisMap.setLayerVisible(key, input.checked) });
-    return h('label', { class: 'gis-check' }, [input, ({ regencies: 'Kab/Kota boundaries', events: 'Events', airports: 'Airports', volcanoes: 'Volcanoes' })[key]]);
+    return h('label', { class: 'gis-check' }, [input, ({ provinces: 'Provinces', regencies: 'Kab/Kota boundaries', events: 'Events', heatmap: 'Event heatmap', airports: 'Airports', volcanoes: 'Volcanoes' })[key]]);
   });
 
   const panel = h('section', { class: 'gis-panel', 'aria-label': 'Spatial analysis' }, [

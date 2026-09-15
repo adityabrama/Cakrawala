@@ -39,8 +39,8 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
   let map = null;
   let readyPromise = null;
   let basemapId = 'liberty';
-  const data = { regencies: EMPTY, events: EMPTY, airports: EMPTY, volcanoes: EMPTY, analysis: EMPTY };
-  const visible = { regencies: true, events: true, airports: false, volcanoes: false, analysis: true };
+  const data = { regencies: EMPTY, provinces: EMPTY, events: EMPTY, airports: EMPTY, volcanoes: EMPTY, analysis: EMPTY };
+  const visible = { regencies: true, provinces: true, events: true, heatmap: false, airports: false, volcanoes: false, analysis: true };
   let provinceCode = null;
   let hoveredRegency = null;
 
@@ -55,6 +55,7 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
       if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: data[id], ...(promoteId ? { promoteId } : {}) });
     };
     ensureSource('regencies', 'code');
+    ensureSource('provinces', 'code');
     ensureSource('analysis');
     ensureSource('airports');
     ensureSource('volcanoes');
@@ -63,6 +64,11 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
     addLayer({ id: 'regencies-fill', type: 'fill', source: 'regencies', paint: { 'fill-color': '#00d4ff', 'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.18, ['boolean', ['feature-state', 'province'], false], 0.1, 0.02] } });
     addLayer({ id: 'regencies-line', type: 'line', source: 'regencies', paint: { 'line-color': '#00d4ff', 'line-opacity': 0.45, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.4, 9, 1.2] } });
     addLayer({ id: 'province-line', type: 'line', source: 'regencies', filter: ['==', ['slice', ['get', 'code'], 0, 2], provinceCode || '__'], paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-opacity': 0.9 } });
+    // Dissolved province outlines (provinces.geojson); the focused province
+    // gets a heavier stroke. While that file is absent the regency-derived
+    // `province-line` above still marks the focus.
+    addLayer({ id: 'provinces-line', type: 'line', source: 'provinces', paint: { 'line-color': '#ffffff', 'line-opacity': 0.55, 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 8, 1.8] } });
+    addLayer({ id: 'province-focus-line', type: 'line', source: 'provinces', filter: ['==', ['get', 'code'], provinceCode || '__'], paint: { 'line-color': '#ffffff', 'line-width': 2.6, 'line-opacity': 0.95 } });
     addLayer({ id: 'analysis-fill', type: 'fill', source: 'analysis', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': '#ffd166', 'fill-opacity': 0.16 } });
     addLayer({ id: 'analysis-line', type: 'line', source: 'analysis', paint: { 'line-color': '#ffd166', 'line-width': 2, 'line-dasharray': [2, 1.5] } });
     addLayer({ id: 'analysis-points', type: 'circle', source: 'analysis', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#ffd166', 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
@@ -70,6 +76,15 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
     addLayer({ id: 'airports-labels', type: 'symbol', source: 'airports', minzoom: 7, layout: { 'text-field': ['coalesce', ['get', 'iata'], ['get', 'ident']], 'text-font': LABEL_FONT, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top' }, paint: { 'text-color': '#7fffd4', 'text-halo-color': '#000', 'text-halo-width': 1 } });
     addLayer({ id: 'volcanoes-points', type: 'circle', source: 'volcanoes', paint: { 'circle-radius': 4, 'circle-color': '#ff9f1c', 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
     addLayer({ id: 'volcanoes-labels', type: 'symbol', source: 'volcanoes', minzoom: 6, layout: { 'text-field': ['get', 'name'], 'text-font': LABEL_FONT, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top' }, paint: { 'text-color': '#ff9f1c', 'text-halo-color': '#000', 'text-halo-width': 1 } });
+    // Density view of the same events, weighted by severity; off by default and
+    // hidden past zoom 12 where individual points read better.
+    addLayer({ id: 'events-heat', type: 'heatmap', source: 'events', maxzoom: 12, paint: {
+      'heatmap-weight': ['match', ['get', 'severity'], 'critical', 1, 'high', 0.8, 'medium', 0.55, 'low', 0.35, 0.15],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 10, 2],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 3, 14, 10, 34],
+      'heatmap-opacity': 0.7,
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.2, 'rgba(0,212,255,0.55)', 0.5, 'rgba(255,209,102,0.8)', 0.8, 'rgba(255,90,54,0.9)', 1, 'rgba(255,255,255,1)'],
+    } });
     addLayer({ id: 'events-points', type: 'circle', source: 'events', paint: { 'circle-radius': radiusMatch, 'circle-color': colorMatch, 'circle-opacity': ['match', ['get', 'status'], 'historical', 0.5, 0.95], 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
     addLayer({ id: 'events-labels', type: 'symbol', source: 'events', minzoom: 5, layout: { 'text-field': ['get', 'label'], 'text-font': LABEL_FONT, 'text-size': 11, 'text-offset': [0, 1.2], 'text-anchor': 'top', 'text-optional': true }, paint: { 'text-color': colorMatch, 'text-halo-color': '#000', 'text-halo-width': 1.2 } });
     applyVisibility();
@@ -79,14 +94,20 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
     if (!map) return;
     const groups = {
       regencies: ['regencies-fill', 'regencies-line', 'province-line'],
+      provinces: ['provinces-line', 'province-focus-line'],
       events: ['events-points', 'events-labels'],
+      heatmap: ['events-heat'],
       airports: ['airports-points', 'airports-labels'],
       volcanoes: ['volcanoes-points', 'volcanoes-labels'],
       analysis: ['analysis-fill', 'analysis-line', 'analysis-points'],
     };
+    const hasProvinces = (data.provinces.features || []).length > 0;
     for (const [key, layers] of Object.entries(groups)) {
       for (const id of layers) {
-        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible[key] ? 'visible' : 'none');
+        // The regency-derived focus outline is only a stand-in for the
+        // dissolved province outline.
+        const on = id === 'province-line' ? visible.regencies && !hasProvinces : visible[key];
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
       }
     }
   }
@@ -218,6 +239,10 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
     },
     getBasemap: () => basemapId,
     setBoundaries: (collection) => setData('regencies', collection),
+    setProvinceBoundaries(collection) {
+      setData('provinces', collection);
+      applyVisibility();
+    },
     setEvents(events) {
       const collection = eventsToGeoJson(events);
       for (const feature of collection.features) {
@@ -236,6 +261,7 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
     setProvince(code) {
       provinceCode = code || null;
       if (map?.getLayer('province-line')) map.setFilter('province-line', ['==', ['slice', ['get', 'code'], 0, 2], provinceCode || '__']);
+      if (map?.getLayer('province-focus-line')) map.setFilter('province-focus-line', ['==', ['get', 'code'], provinceCode || '__']);
       for (const feature of data.regencies.features || []) {
         map?.setFeatureState({ source: 'regencies', id: feature.properties.code }, { province: Boolean(provinceCode) && String(feature.properties.code).startsWith(provinceCode) });
       }
