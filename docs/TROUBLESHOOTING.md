@@ -57,6 +57,22 @@ next to the pre-bundled dep or the built chunk, so the worker never answers.
 **The 3D globe looks frozen behind the map.** By design: the Cesium render
 loop pauses while the GIS map is shown and resumes on "← 3D globe".
 
+## CCTV
+
+**"Only Bandung" in the camera dropdown.** The dropdown lists every loaded
+camera grouped by city (`Yogyakarta (154)`, `Bandung (449)`, …); Bandung is the
+largest Indonesian pack, so it fills the first screen. Scroll past it or use
+NEAREST. `GET /api/cctv/sources` shows the full catalog; the
+`[CCTV] <pack>: N cameras` lines in the server log (Pinokio:
+`pinokio/logs/api/start.js/latest`) show which portals answered at boot.
+
+**A city is missing.** Its portal was unreachable at boot (Yogyakarta and
+Salatiga drop out regularly). Every successful catalog is cached in
+`.gev-intel/cctv-catalog/<pack>.json` (30-day max age) and served when the
+portal is down, so a city only disappears the very first time its portal is
+down before it was ever seen. Camera frames are still fetched live — a cached
+city whose portal is down shows placeholder monitors until it returns.
+
 ## Dev server
 
 **`[vite] failed to connect to websocket` in the console.** Hot module

@@ -494,8 +494,14 @@ export const INTERNATIONAL_CCTV_PACKS = Object.freeze([
 
 /**
  * Load several catalog packs concurrently. Each pack fails independently.
+ *
+ * A city portal that is down at boot used to vanish from the app until the
+ * next successful sweep. With a `cache`, every good catalog is remembered and
+ * an unreachable portal serves its last known cameras instead (camera
+ * positions rarely change; the frames themselves are still fetched live, so
+ * a dead feed still shows as unavailable).
  * @param {ReadonlyArray<{id:string,url:string,kind:'json'|'text',referer?:string,xhr?:boolean,parse:Function}>} packs
- * @param {{fetchImpl?: typeof fetch, timeoutMs?: number, isEnabled?: (id: string) => boolean, log?: Pick<Console,'log'|'warn'>}} [options]
+ * @param {{fetchImpl?: typeof fetch, timeoutMs?: number, isEnabled?: (id: string) => boolean, log?: Pick<Console,'log'|'warn'>, cache?: {read: (id: string) => ({savedAt:number, cameras:object[]}|null|Promise<{savedAt:number, cameras:object[]}|null>), write: (id: string, cameras: object[]) => unknown}}} [options]
  * @returns {Promise<Array<object>>}
  */
 export async function loadCctvPacks(packs, {
@@ -503,6 +509,7 @@ export async function loadCctvPacks(packs, {
   timeoutMs = 15_000,
   isEnabled = () => true,
   log = console,
+  cache = null,
 } = {}) {
   const active = (Array.isArray(packs) ? packs : []).filter((pack) => isEnabled(pack.id));
   const settled = await Promise.allSettled(active.map(async (pack) => {
@@ -515,13 +522,28 @@ export async function loadCctvPacks(packs, {
     const payload = pack.kind === 'json' ? await response.json() : await response.text();
     const cameras = pack.parse(payload);
     log?.log?.(`[CCTV] ${pack.id}: ${cameras.length} cameras (${Date.now() - startedAt} ms)`);
+    if (cameras.length > 0 && cache?.write) {
+      try { await cache.write(pack.id, cameras); } catch (error) { log?.warn?.(`[CCTV] ${pack.id} catalog cache write failed: ${error?.message || error}`); }
+    }
     return cameras;
   }));
   const cameras = [];
-  settled.forEach((result, index) => {
-    if (result.status === 'fulfilled') cameras.push(...result.value);
-    else log?.warn?.(`[CCTV] ${active[index].id} catalog unavailable: ${result.reason?.message || result.reason}`);
-  });
+  for (const [index, result] of settled.entries()) {
+    const pack = active[index];
+    if (result.status === 'fulfilled') { cameras.push(...result.value); continue; }
+    const reason = result.reason?.message || result.reason;
+    let cached = null;
+    if (cache?.read) {
+      try { cached = await cache.read(pack.id); } catch { cached = null; }
+    }
+    if (Array.isArray(cached?.cameras) && cached.cameras.length > 0) {
+      const ageH = Number.isFinite(cached.savedAt) ? Math.max(0, Math.round((Date.now() - cached.savedAt) / 3_600_000)) : null;
+      log?.warn?.(`[CCTV] ${pack.id} catalog unavailable (${reason}); using ${cached.cameras.length} cached cameras${ageH === null ? '' : ` from ${ageH} h ago`}`);
+      cameras.push(...cached.cameras);
+    } else {
+      log?.warn?.(`[CCTV] ${pack.id} catalog unavailable: ${reason}`);
+    }
+  }
   return cameras;
 }
 

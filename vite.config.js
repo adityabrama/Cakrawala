@@ -4247,6 +4247,29 @@ async function getCctvSources() {
  *
  * @returns {Promise<Array<object>>} Deduplicated, capped source list.
  */
+// Last good catalog per city pack, so a portal that is down at boot keeps its
+// cameras on the globe (frames are still fetched live). Lives next to the
+// intelligence memory: git-ignored, persisted by the Docker volume.
+const CCTV_CATALOG_CACHE_DIR = path.join(__dirname, '.gev-intel', 'cctv-catalog');
+const CCTV_CATALOG_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const cctvCatalogCache = {
+  async read(packId) {
+    const file = path.join(CCTV_CATALOG_CACHE_DIR, `${packId}.json`);
+    let parsed;
+    try { parsed = JSON.parse(await fsp.readFile(file, 'utf8')); } catch { return null; }
+    if (!Array.isArray(parsed?.cameras) || !Number.isFinite(parsed?.savedAt)) return null;
+    if (Date.now() - parsed.savedAt > CCTV_CATALOG_CACHE_MAX_AGE_MS) return null;
+    return parsed;
+  },
+  async write(packId, cameras) {
+    await fsp.mkdir(CCTV_CATALOG_CACHE_DIR, { recursive: true });
+    const file = path.join(CCTV_CATALOG_CACHE_DIR, `${packId}.json`);
+    const tmp = `${file}.${process.pid}.tmp`;
+    await fsp.writeFile(tmp, JSON.stringify({ savedAt: Date.now(), cameras }));
+    await fsp.rename(tmp, file);
+  },
+};
+
 async function refreshCctvSources() {
   const fromFile = loadSourcesFromFile();
   const fromEnv = loadSourcesFromEnv();
@@ -4271,8 +4294,8 @@ async function refreshCctvSources() {
       loadAustinSourcesFromOpenData(),
       loadCaltransSourcesFromOpenData(),
       tflEnabled ? loadTflSourcesFromOpenData() : Promise.resolve([]),
-      indonesiaEnabled ? loadCctvPacks(INDONESIA_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS }) : Promise.resolve([]),
-      internationalEnabled ? loadCctvPacks(INTERNATIONAL_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS }) : Promise.resolve([]),
+      indonesiaEnabled ? loadCctvPacks(INDONESIA_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS, cache: cctvCatalogCache }) : Promise.resolve([]),
+      internationalEnabled ? loadCctvPacks(INTERNATIONAL_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS, cache: cctvCatalogCache }) : Promise.resolve([]),
     ]);
     fromAustin = austinResult.status === 'fulfilled' ? austinResult.value : [];
     fromCaltrans = caltransResult.status === 'fulfilled' ? caltransResult.value : [];

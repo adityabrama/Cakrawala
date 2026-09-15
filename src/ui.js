@@ -6745,12 +6745,28 @@ export class StyleManager {
       const shouldRebuild = this._cctvSelect.options.length !== cameras.length
         || cameras.some((cam, idx) => this._cctvSelect.options[idx]?.value !== cam.id);
       if (shouldRebuild) {
+        // One <optgroup> per city, in record order, so a ~3,000-camera catalog
+        // reads as a list of cities instead of one flat run where the first
+        // pack (Bandung, 449 cameras) fills the whole dropdown viewport. The
+        // flat option order is unchanged, which PREV/NEXT and the index
+        // comparison above rely on.
         this._cctvSelect.innerHTML = '';
+        const groups = new Map();
         for (const camera of cameras) {
-          const option = document.createElement('option');
-          option.value = camera.id;
-          option.textContent = `${camera.city} · ${camera.name}`;
-          this._cctvSelect.appendChild(option);
+          const city = camera.city || 'Other';
+          if (!groups.has(city)) groups.set(city, []);
+          groups.get(city).push(camera);
+        }
+        for (const [city, members] of groups) {
+          const group = document.createElement('optgroup');
+          group.label = `${city} (${members.length})`;
+          for (const camera of members) {
+            const option = document.createElement('option');
+            option.value = camera.id;
+            option.textContent = `${camera.city} · ${camera.name}`;
+            group.appendChild(option);
+          }
+          this._cctvSelect.appendChild(group);
         }
       }
       this._cctvSelect.disabled = !enabled || cameras.length === 0;

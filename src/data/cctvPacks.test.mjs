@@ -161,3 +161,35 @@ test('the Singapore resolver caches its list and shares one refresh', async () =
   assert.equal(await resolve('sg-missing'), null);
   assert.equal(calls, 1);
 });
+
+test('a pack that is down serves its cached catalog and a good fetch refreshes the cache', async () => {
+  const packs = [
+    { id: 'up', url: 'https://up.example/list', kind: 'json', parse: (list) => list.map((id) => ({ id })) },
+    { id: 'down', url: 'https://down.example/list', kind: 'json', parse: () => [] },
+    { id: 'down-uncached', url: 'https://gone.example/list', kind: 'json', parse: () => [] },
+  ];
+  const store = new Map([['down', { savedAt: Date.now() - 5 * 3_600_000, cameras: [{ id: 'cached-1' }, { id: 'cached-2' }] }]]);
+  const cache = {
+    read: async (id) => store.get(id) || null,
+    write: async (id, cameras) => { store.set(id, { savedAt: Date.now(), cameras }); },
+  };
+  const warnings = [];
+  const fetchImpl = async (url) => {
+    if (!url.includes('up')) throw new Error('ECONNRESET');
+    return { ok: true, json: async () => ['fresh'] };
+  };
+  const cameras = await loadCctvPacks(packs, { fetchImpl, cache, log: { log() {}, warn: (message) => warnings.push(message) } });
+  assert.deepEqual(cameras.map((camera) => camera.id), ['fresh', 'cached-1', 'cached-2']);
+  assert.deepEqual(store.get('up').cameras, [{ id: 'fresh' }], 'a successful fetch is remembered');
+  assert.equal(warnings.length, 2);
+  assert.match(warnings[0], /down catalog unavailable \(ECONNRESET\); using 2 cached cameras from 5 h ago/);
+  assert.match(warnings[1], /down-uncached catalog unavailable: ECONNRESET/);
+
+  // An empty result never overwrites a good cache, and a broken cache is ignored.
+  const emptyFetch = async () => ({ ok: true, json: async () => [] });
+  await loadCctvPacks([packs[0]], { fetchImpl: emptyFetch, cache, log: { log() {}, warn() {} } });
+  assert.deepEqual(store.get('up').cameras, [{ id: 'fresh' }]);
+  const broken = { read: async () => { throw new Error('disk'); }, write: async () => { throw new Error('disk'); } };
+  const survived = await loadCctvPacks(packs.slice(0, 2), { fetchImpl, cache: broken, log: { log() {}, warn() {} } });
+  assert.deepEqual(survived.map((camera) => camera.id), ['fresh']);
+});
