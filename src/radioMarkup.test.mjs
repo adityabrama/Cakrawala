@@ -21,11 +21,16 @@ function realtimeTools() {
   return new Function(`return ${literal};`)();
 }
 
-test('Realtime schema exposes the authoritative 28-tool inventory', () => {
+test('Realtime schema exposes the authoritative 37-tool inventory', () => {
   const tools = realtimeTools();
-  assert.equal(tools.length, 28);
+  // 28 shipped tools + the 9 Indonesia command center / intelligence / GIS
+  // tools added 2026-09-15 (src/voice/indonesiaTools.js).
+  assert.equal(tools.length, 37);
   const names = tools.map((tool) => tool.name);
-  assert.equal(new Set(names).size, 28, 'tool names are unique');
+  assert.equal(new Set(names).size, 37, 'tool names are unique');
+  for (const name of ['set_indonesia_mode', 'set_map_mode', 'get_indonesia_summary', 'query_events', 'query_nearby_events', 'get_data_source_status', 'set_timeline_range', 'measure_distance', 'spatial_buffer']) {
+    assert.ok(names.includes(name), `${name} is exposed to the model`);
+  }
   assert.ok(names.includes('set_context_mode'));
   assert.ok(names.includes('control_cockpit'));
   assert.ok(names.includes('select_nearest_aircraft'));
@@ -174,16 +179,28 @@ test('no unchanged Realtime tool definition drifts silently', () => {
     'fly_to_location',
     'select_nearest_aircraft',
     'set_map_stack',
+    // 2026-09-15 Indonesia integration: the two intelligence layers joined
+    // set_layer_visibility's enum, and nine new tools were added.
+    'set_layer_visibility',
+    'set_indonesia_mode',
+    'set_map_mode',
+    'get_indonesia_summary',
+    'query_events',
+    'query_nearby_events',
+    'get_data_source_status',
+    'set_timeline_range',
+    'measure_distance',
+    'spatial_buffer',
   ]);
   const unchanged = realtimeTools()
     .filter((tool) => !TOUCHED.has(tool.name))
     .sort((a, b) => a.name.localeCompare(b.name));
-  assert.equal(unchanged.length, 21);
+  assert.equal(unchanged.length, 20);
   const digest = createHash('sha256')
     .update(JSON.stringify(unchanged))
     .digest('hex')
     .slice(0, 16);
-  assert.equal(digest, '802ed694b8887b88', 'an unchanged Realtime tool definition drifted');
+  assert.equal(digest, '43f7d0c59e0c97eb', 'an unchanged Realtime tool definition drifted');
 });
 
 test('Radio volume and mission speed share the Sharpen slider visual language', () => {

@@ -20,6 +20,7 @@ import { isPickedWorldPosition } from '../data/scenePick.js';
 import { resolveRegionRingForQuery } from '../annotations/annotationResolver.js';
 import { normalizeRadioCountryInput } from '../data/radioCountry.js';
 import { TR3B_CLASS } from '../data/tr3bRegistry.js';
+import { runIndonesiaTool } from './indonesiaTools.js';
 
 const ALLOWED_STYLES = new Set(['normal', 'retro', 'surveillance', 'thermal', 'anime', 'noir', 'snow']);
 const PANEL_ALIASES = new Map([
@@ -176,6 +177,14 @@ const LAYER_ALIASES = new Map([
   ['firms', 'local-firms'],
   ['fires', 'local-firms'],
   ['active fires', 'local-firms'],
+  ['indonesia signals', 'id-events'],
+  ['indonesia events', 'id-events'],
+  ['disasters', 'id-events'],
+  ['disaster signals', 'id-events'],
+  ['bencana', 'id-events'],
+  ['indonesia news', 'id-news'],
+  ['news', 'id-news'],
+  ['berita', 'id-news'],
 ]);
 
 const CITY_ALIASES = new Map([
@@ -816,6 +825,11 @@ export function createGevActionRunner({ viewer, styleManager, dataManager, scene
     if (name === 'analyst_query') {
       return runAnalystQuery(viewer, dataManager, args);
     }
+
+    // Indonesia command center, intelligence engine, and GIS toolbox tools
+    // live in their own module; null means "not one of mine".
+    const indonesiaResult = await runIndonesiaTool(name, args, { viewer, dataManager });
+    if (indonesiaResult) return indonesiaResult;
 
     if (name === 'move_camera') {
       return moveCamera(args, (navigate, releaseOptions) => runManagedVoiceNavigation(
