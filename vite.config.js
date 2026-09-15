@@ -35,6 +35,7 @@ import { Readable } from 'node:stream';
 import https from 'node:https';
 import { lookup as lookupDns } from 'node:dns/promises';
 import { directionToHeading } from './src/data/directionText.js';
+import { intelligenceProxy } from './server/intelligence/vitePlugin.js';
 import {
   isValidTileCoord as isValidTomTomTile,
   utcDayKey as tomtomUtcDayKey,
@@ -5932,6 +5933,8 @@ const GEV_REALTIME_TOOLS = [
             'local-dams',
             'telegeography-submarine-cables',
             'local-firms',
+            'id-events',
+            'id-news',
           ],
         },
         enabled: { type: 'boolean' },
@@ -6413,6 +6416,132 @@ const GEV_REALTIME_TOOLS = [
         limit: { type: 'number' },
         followUp: { type: 'boolean', description: 'true = re-query the PREVIOUS result set instead of fresh data.' },
       },
+    },
+  },
+  // ── Indonesia command center, intelligence engine, GIS ───────────────────
+  {
+    type: 'function',
+    name: 'set_indonesia_mode',
+    description: 'Turn Indonesia mode on/off and optionally focus a province. ON enables the Indonesia Signals (id-events) and Indonesia News (id-news) layers and frames the archipelago when the camera is elsewhere. Provinces use two-digit Kemendagri codes (11 Aceh … 96 Papua Barat Daya) or a name ("Jawa Barat", "Bali"); pass an empty province to return to all of Indonesia.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        enabled: { type: 'boolean' },
+        province: { type: 'string', description: 'Province code or name; empty string clears the focus.' },
+        openPanel: { type: 'boolean', description: 'Open the Indonesia command center drawer.' },
+        tab: { type: 'string', enum: ['alerts', 'events', 'weather', 'brief', 'economy', 'sources'] },
+      },
+    },
+  },
+  {
+    type: 'function',
+    name: 'set_map_mode',
+    description: 'Switch between the 3D globe and the 2D GIS map (MapLibre: administrative boundaries, spatial analysis). The location is preserved across the switch.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: { mode: { type: 'string', enum: ['3d', 'gis'] } },
+      required: ['mode'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'get_indonesia_summary',
+    description: 'Indonesia Brief (or a province brief): the notable disaster, weather, volcano, earthquake, and news signals in the window, plus active alerts and data-source health. Every line carries its source and timestamp; say "correlated", never "caused". Use for "what is happening in Indonesia / West Java right now".',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        province: { type: 'string', description: 'Optional province code or name for a province brief.' },
+        hours: { type: 'number', minimum: 1, maximum: 720, description: 'Window in hours (default 72).' },
+      },
+    },
+  },
+  {
+    type: 'function',
+    name: 'query_events',
+    description: 'List intelligence events (earthquake, volcano, flood, landslide, fire, weather, news, …) from the engine with optional type, province, severity, and time filters. Returns counts and the top rows with source, timestamp, freshness (LIVE/DELAYED/MODELED/ESTIMATED/HISTORICAL), and coordinates. Counts are exact for the loaded data; name the window and scope when answering.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        types: { type: 'array', items: { type: 'string', enum: ['earthquake', 'tsunami', 'volcano', 'flood', 'landslide', 'fire', 'haze', 'weather', 'drought', 'disaster', 'news', 'transport', 'aviation', 'maritime', 'economy', 'health', 'other'] } },
+        province: { type: 'string', description: 'Province code or name.' },
+        hours: { type: 'number', minimum: 1, maximum: 720 },
+        minSeverity: { type: 'string', enum: ['info', 'low', 'medium', 'high', 'critical'] },
+        limit: { type: 'number', minimum: 1, maximum: 50 },
+        flyToFirst: { type: 'boolean', description: 'Fly the camera to the top result and select it.' },
+      },
+    },
+  },
+  {
+    type: 'function',
+    name: 'query_nearby_events',
+    description: 'Events within a radius of a point (default: the current view centre): "events within 100 km of here / of Bandung". Returns each event with its distance in km, nearest first.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        latitude: { type: 'number', minimum: -90, maximum: 90 },
+        longitude: { type: 'number', minimum: -180, maximum: 180 },
+        place: { type: 'string', description: 'Indonesian province, regency, or city name to use as the centre instead of coordinates.' },
+        radiusKm: { type: 'number', minimum: 1, maximum: 2000 },
+        hours: { type: 'number', minimum: 1, maximum: 720 },
+        types: { type: 'array', items: { type: 'string' } },
+        limit: { type: 'number', minimum: 1, maximum: 50 },
+      },
+      required: ['radiusKm'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'get_data_source_status',
+    description: 'Health of every intelligence data source: OK / ERROR / TIMEOUT / NOT CONFIGURED, last run, cadence, event count, license, and which environment key an unconfigured source needs.',
+    parameters: { type: 'object', additionalProperties: false, properties: {} },
+  },
+  {
+    type: 'function',
+    name: 'set_timeline_range',
+    description: 'Set the Indonesia timeline window (1–720 hours) and optionally start/stop playback that scrubs the window from its start to now.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        hours: { type: 'number', minimum: 1, maximum: 720 },
+        playing: { type: 'boolean' },
+      },
+    },
+  },
+  {
+    type: 'function',
+    name: 'measure_distance',
+    description: 'Great-circle distance and bearing between two points given as coordinates or Indonesian place names ("Jakarta", "Bandung", "Jawa Barat").',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        from: { type: 'string', description: 'Place name, or "lat,lon".' },
+        to: { type: 'string', description: 'Place name, or "lat,lon".' },
+      },
+      required: ['from', 'to'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'spatial_buffer',
+    description: 'Buffer analysis around a point (place name, coordinates, or the view centre): events inside the radius, nearest airport, nearest volcano, and the regency the point falls in. Draws the buffer on the GIS map when it is open.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        place: { type: 'string' },
+        latitude: { type: 'number', minimum: -90, maximum: 90 },
+        longitude: { type: 'number', minimum: -180, maximum: 180 },
+        radiusKm: { type: 'number', minimum: 1, maximum: 1000 },
+        hours: { type: 'number', minimum: 1, maximum: 720 },
+      },
+      required: ['radiusKm'],
     },
   },
   {
@@ -7906,6 +8035,8 @@ export default defineConfig(({ mode }) => {
       openAiRealtimeProxy(),
       googlePlacesContextProxy(),
       keySetupEndpoint(),
+      // Intelligence engine (Indonesia-first sweeps, alerts, briefs, GIS boundaries).
+      intelligenceProxy(),
     ],
     server: {
       host: env.HOST || 'localhost',
@@ -7945,7 +8076,9 @@ export default defineConfig(({ mode }) => {
     // hls.js loads lazily when the first HLS camera opens; pre-bundling it keeps
     // that first dynamic import from triggering a dev-server dependency reload.
     optimizeDeps: {
-      include: ['hls.js'],
+      // Pre-bundle lazily imported deps so their first use never triggers a
+      // dev-server "new dependencies optimized" reload mid-session.
+      include: ['hls.js', 'maplibre-gl'],
     },
     build: {
       // The Cesium engine bundle is inherently large; raise the warning ceiling

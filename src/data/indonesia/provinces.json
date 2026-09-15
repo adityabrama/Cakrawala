@@ -1,0 +1,572 @@
+[
+ {
+  "code": "11",
+  "name": "Aceh",
+  "capital": "Banda Aceh",
+  "lat": 5.548,
+  "lon": 95.323,
+  "island": "Sumatera",
+  "bbox": [
+   94.972,
+   1.978,
+   98.287,
+   6.077
+  ],
+  "regencyCount": 23
+ },
+ {
+  "code": "12",
+  "name": "Sumatera Utara",
+  "capital": "Medan",
+  "lat": 3.595,
+  "lon": 98.672,
+  "island": "Sumatera",
+  "bbox": [
+   97.058,
+   -0.636,
+   100.434,
+   4.299
+  ],
+  "regencyCount": 33
+ },
+ {
+  "code": "13",
+  "name": "Sumatera Barat",
+  "capital": "Padang",
+  "lat": -0.947,
+  "lon": 100.417,
+  "island": "Sumatera",
+  "bbox": [
+   98.597,
+   -3.573,
+   101.893,
+   0.907
+  ],
+  "regencyCount": 19
+ },
+ {
+  "code": "14",
+  "name": "Riau",
+  "capital": "Pekanbaru",
+  "lat": 0.507,
+  "lon": 101.447,
+  "island": "Sumatera",
+  "bbox": [
+   100.051,
+   -1.126,
+   103.814,
+   2.921
+  ],
+  "regencyCount": 12
+ },
+ {
+  "code": "15",
+  "name": "Jambi",
+  "capital": "Jambi",
+  "lat": -1.61,
+  "lon": 103.613,
+  "island": "Sumatera",
+  "bbox": [
+   101.132,
+   -2.767,
+   104.499,
+   -0.732
+  ],
+  "regencyCount": 11
+ },
+ {
+  "code": "16",
+  "name": "Sumatera Selatan",
+  "capital": "Palembang",
+  "lat": -2.976,
+  "lon": 104.775,
+  "island": "Sumatera",
+  "bbox": [
+   102.064,
+   -4.924,
+   106.221,
+   -1.627
+  ],
+  "regencyCount": 17
+ },
+ {
+  "code": "17",
+  "name": "Bengkulu",
+  "capital": "Bengkulu",
+  "lat": -3.8,
+  "lon": 102.266,
+  "island": "Sumatera",
+  "bbox": [
+   101.022,
+   -5.514,
+   103.79,
+   -2.29
+  ],
+  "regencyCount": 10
+ },
+ {
+  "code": "18",
+  "name": "Lampung",
+  "capital": "Bandar Lampung",
+  "lat": -5.429,
+  "lon": 105.262,
+  "island": "Sumatera",
+  "bbox": [
+   103.596,
+   -6.168,
+   106.28,
+   -3.724
+  ],
+  "regencyCount": 15
+ },
+ {
+  "code": "19",
+  "name": "Kepulauan Bangka Belitung",
+  "capital": "Pangkal Pinang",
+  "lat": -2.131,
+  "lon": 106.115,
+  "island": "Sumatera",
+  "bbox": [
+   105.109,
+   -3.801,
+   108.872,
+   -1.494
+  ],
+  "regencyCount": 7
+ },
+ {
+  "code": "21",
+  "name": "Kepulauan Riau",
+  "capital": "Tanjung Pinang",
+  "lat": 0.918,
+  "lon": 104.457,
+  "island": "Sumatera",
+  "bbox": [
+   103.28,
+   -1.275,
+   109.167,
+   4.796
+  ],
+  "regencyCount": 7
+ },
+ {
+  "code": "31",
+  "name": "DKI Jakarta",
+  "capital": "Jakarta",
+  "lat": -6.208,
+  "lon": 106.846,
+  "island": "Jawa",
+  "bbox": [
+   106.391,
+   -6.373,
+   106.973,
+   -5.203
+  ],
+  "regencyCount": 6
+ },
+ {
+  "code": "32",
+  "name": "Jawa Barat",
+  "capital": "Bandung",
+  "lat": -6.914,
+  "lon": 107.609,
+  "island": "Jawa",
+  "bbox": [
+   106.37,
+   -7.82,
+   108.847,
+   -5.807
+  ],
+  "regencyCount": 27
+ },
+ {
+  "code": "33",
+  "name": "Jawa Tengah",
+  "capital": "Semarang",
+  "lat": -6.966,
+  "lon": 110.417,
+  "island": "Jawa",
+  "bbox": [
+   108.556,
+   -8.211,
+   111.691,
+   -5.726
+  ],
+  "regencyCount": 35
+ },
+ {
+  "code": "34",
+  "name": "Daerah Istimewa Yogyakarta",
+  "capital": "Yogyakarta",
+  "lat": -7.797,
+  "lon": 110.37,
+  "island": "Jawa",
+  "bbox": [
+   110.004,
+   -8.206,
+   110.835,
+   -7.541
+  ],
+  "regencyCount": 5
+ },
+ {
+  "code": "35",
+  "name": "Jawa Timur",
+  "capital": "Surabaya",
+  "lat": -7.257,
+  "lon": 112.752,
+  "island": "Jawa",
+  "bbox": [
+   110.9,
+   -8.78,
+   116.262,
+   -5.043
+  ],
+  "regencyCount": 38
+ },
+ {
+  "code": "36",
+  "name": "Banten",
+  "capital": "Serang",
+  "lat": -6.12,
+  "lon": 106.15,
+  "island": "Jawa",
+  "bbox": [
+   105.101,
+   -7.014,
+   106.78,
+   -5.808
+  ],
+  "regencyCount": 8
+ },
+ {
+  "code": "51",
+  "name": "Bali",
+  "capital": "Denpasar",
+  "lat": -8.67,
+  "lon": 115.212,
+  "island": "Bali–Nusa Tenggara",
+  "bbox": [
+   114.432,
+   -8.848,
+   115.712,
+   -8.062
+  ],
+  "regencyCount": 9
+ },
+ {
+  "code": "52",
+  "name": "Nusa Tenggara Barat",
+  "capital": "Mataram",
+  "lat": -8.583,
+  "lon": 116.117,
+  "island": "Bali–Nusa Tenggara",
+  "bbox": [
+   115.821,
+   -9.107,
+   119.345,
+   -8.084
+  ],
+  "regencyCount": 10
+ },
+ {
+  "code": "53",
+  "name": "Nusa Tenggara Timur",
+  "capital": "Kupang",
+  "lat": -10.178,
+  "lon": 123.597,
+  "island": "Bali–Nusa Tenggara",
+  "bbox": [
+   118.928,
+   -11.007,
+   125.193,
+   -7.78
+  ],
+  "regencyCount": 22
+ },
+ {
+  "code": "61",
+  "name": "Kalimantan Barat",
+  "capital": "Pontianak",
+  "lat": -0.026,
+  "lon": 109.342,
+  "island": "Kalimantan",
+  "bbox": [
+   108.601,
+   -3.067,
+   114.206,
+   2.081
+  ],
+  "regencyCount": 14
+ },
+ {
+  "code": "62",
+  "name": "Kalimantan Tengah",
+  "capital": "Palangka Raya",
+  "lat": -2.208,
+  "lon": 113.917,
+  "island": "Kalimantan",
+  "bbox": [
+   110.733,
+   -3.541,
+   115.849,
+   0.791
+  ],
+  "regencyCount": 14
+ },
+ {
+  "code": "63",
+  "name": "Kalimantan Selatan",
+  "capital": "Banjarmasin",
+  "lat": -3.319,
+  "lon": 114.591,
+  "island": "Kalimantan",
+  "bbox": [
+   114.353,
+   -4.943,
+   117.458,
+   -1.313
+  ],
+  "regencyCount": 13
+ },
+ {
+  "code": "64",
+  "name": "Kalimantan Timur",
+  "capital": "Samarinda",
+  "lat": -0.502,
+  "lon": 117.154,
+  "island": "Kalimantan",
+  "bbox": [
+   113.835,
+   -2.405,
+   119.037,
+   2.569
+  ],
+  "regencyCount": 10
+ },
+ {
+  "code": "65",
+  "name": "Kalimantan Utara",
+  "capital": "Tanjung Selor",
+  "lat": 2.838,
+  "lon": 117.364,
+  "island": "Kalimantan",
+  "bbox": [
+   114.562,
+   1.114,
+   117.988,
+   4.405
+  ],
+  "regencyCount": 5
+ },
+ {
+  "code": "71",
+  "name": "Sulawesi Utara",
+  "capital": "Manado",
+  "lat": 1.487,
+  "lon": 124.846,
+  "island": "Sulawesi",
+  "bbox": [
+   123.105,
+   0.292,
+   127.164,
+   5.565
+  ],
+  "regencyCount": 15
+ },
+ {
+  "code": "72",
+  "name": "Sulawesi Tengah",
+  "capital": "Palu",
+  "lat": -0.9,
+  "lon": 119.871,
+  "island": "Sulawesi",
+  "bbox": [
+   119.427,
+   -3.64,
+   124.181,
+   1.374
+  ],
+  "regencyCount": 13
+ },
+ {
+  "code": "73",
+  "name": "Sulawesi Selatan",
+  "capital": "Makassar",
+  "lat": -5.147,
+  "lon": 119.432,
+  "island": "Sulawesi",
+  "bbox": [
+   117.039,
+   -7.759,
+   122.222,
+   -1.948
+  ],
+  "regencyCount": 24
+ },
+ {
+  "code": "74",
+  "name": "Sulawesi Tenggara",
+  "capital": "Kendari",
+  "lat": -3.972,
+  "lon": 122.515,
+  "island": "Sulawesi",
+  "bbox": [
+   120.864,
+   -6.208,
+   124.615,
+   -2.773
+  ],
+  "regencyCount": 17
+ },
+ {
+  "code": "75",
+  "name": "Gorontalo",
+  "capital": "Gorontalo",
+  "lat": 0.543,
+  "lon": 123.059,
+  "island": "Sulawesi",
+  "bbox": [
+   121.162,
+   0.306,
+   123.552,
+   1.055
+  ],
+  "regencyCount": 6
+ },
+ {
+  "code": "76",
+  "name": "Sulawesi Barat",
+  "capital": "Mamuju",
+  "lat": -2.675,
+  "lon": 118.889,
+  "island": "Sulawesi",
+  "bbox": [
+   117.058,
+   -3.571,
+   119.875,
+   -0.85
+  ],
+  "regencyCount": 6
+ },
+ {
+  "code": "81",
+  "name": "Maluku",
+  "capital": "Ambon",
+  "lat": -3.695,
+  "lon": 128.181,
+  "island": "Maluku",
+  "bbox": [
+   125.723,
+   -8.344,
+   134.908,
+   -2.727
+  ],
+  "regencyCount": 11
+ },
+ {
+  "code": "82",
+  "name": "Maluku Utara",
+  "capital": "Sofifi",
+  "lat": 0.735,
+  "lon": 127.577,
+  "island": "Maluku",
+  "bbox": [
+   124.285,
+   -2.477,
+   129.923,
+   2.645
+  ],
+  "regencyCount": 10
+ },
+ {
+  "code": "91",
+  "name": "Papua",
+  "capital": "Jayapura",
+  "lat": -2.533,
+  "lon": 140.717,
+  "island": "Papua",
+  "bbox": [
+   134.3,
+   -4.116,
+   141.003,
+   0.938
+  ],
+  "regencyCount": 9
+ },
+ {
+  "code": "92",
+  "name": "Papua Barat",
+  "capital": "Manokwari",
+  "lat": -0.861,
+  "lon": 134.062,
+  "island": "Papua",
+  "bbox": [
+   131.577,
+   -4.331,
+   135.334,
+   -0.714
+  ],
+  "regencyCount": 7
+ },
+ {
+  "code": "93",
+  "name": "Papua Selatan",
+  "capital": "Merauke",
+  "lat": -8.493,
+  "lon": 140.401,
+  "island": "Papua",
+  "bbox": [
+   137.496,
+   -9.126,
+   141.02,
+   -4.541
+  ],
+  "regencyCount": 4
+ },
+ {
+  "code": "94",
+  "name": "Papua Tengah",
+  "capital": "Nabire",
+  "lat": -3.367,
+  "lon": 135.496,
+  "island": "Papua",
+  "bbox": [
+   134.585,
+   -5.146,
+   138.354,
+   -2.275
+  ],
+  "regencyCount": 8
+ },
+ {
+  "code": "95",
+  "name": "Papua Pegunungan",
+  "capital": "Wamena",
+  "lat": -4.097,
+  "lon": 138.95,
+  "island": "Papua",
+  "bbox": [
+   137.828,
+   -5.265,
+   141.001,
+   -3.11
+  ],
+  "regencyCount": 8
+ },
+ {
+  "code": "96",
+  "name": "Papua Barat Daya",
+  "capital": "Sorong",
+  "lat": -0.876,
+  "lon": 131.256,
+  "island": "Papua",
+  "bbox": [
+   129.3,
+   -2.284,
+   133.493,
+   1.08
+  ],
+  "regencyCount": 6
+ }
+]

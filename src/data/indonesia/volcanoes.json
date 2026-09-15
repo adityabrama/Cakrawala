@@ -1,0 +1,1253 @@
+[
+ {
+  "id": "Q158470",
+  "name": "Agung",
+  "key": "agung",
+  "lat": -8.341944444,
+  "lon": 115.507777777,
+  "elevationM": 3031,
+  "aliases": []
+ },
+ {
+  "id": "Q456619",
+  "name": "Ambang",
+  "key": "ambang",
+  "lat": 0.7575,
+  "lon": 124.415833333,
+  "elevationM": 1795,
+  "aliases": []
+ },
+ {
+  "id": "Q665399",
+  "name": "Arjuno",
+  "key": "arjuno",
+  "lat": -7.765,
+  "lon": 112.589722222,
+  "elevationM": 3339,
+  "aliases": []
+ },
+ {
+  "id": "Q791817",
+  "name": "Awu",
+  "key": "awu",
+  "lat": 3.68128,
+  "lon": 125.45387,
+  "elevationM": 1320,
+  "aliases": []
+ },
+ {
+  "id": "Q571805",
+  "name": "Baluran",
+  "key": "baluran",
+  "lat": -7.846388888,
+  "lon": 114.362222222,
+  "elevationM": 1247,
+  "aliases": []
+ },
+ {
+  "id": "Q109017289",
+  "name": "Barujari",
+  "key": "barujari",
+  "lat": -8.4112936,
+  "lon": 116.4221044,
+  "elevationM": 2376,
+  "aliases": []
+ },
+ {
+  "id": "Q43876",
+  "name": "Batur",
+  "key": "batur",
+  "lat": -8.241944444,
+  "lon": 115.375,
+  "elevationM": 1717,
+  "aliases": []
+ },
+ {
+  "id": "Q811048",
+  "name": "Batutara",
+  "key": "batutara",
+  "lat": -7.791666666,
+  "lon": 123.579166666,
+  "elevationM": 748,
+  "aliases": []
+ },
+ {
+  "id": "Q829440",
+  "name": "Besar",
+  "key": "besar",
+  "lat": -4.437222222,
+  "lon": 103.671388888,
+  "elevationM": 1899,
+  "aliases": []
+ },
+ {
+  "id": "Q2746608",
+  "name": "Bledug Kuwu",
+  "key": "bledug kuwu",
+  "lat": -7.1175,
+  "lon": 111.121388888,
+  "elevationM": 48,
+  "aliases": []
+ },
+ {
+  "id": "Q2003801",
+  "name": "Bratan",
+  "key": "bratan",
+  "lat": -8.283333333,
+  "lon": 115.133333333,
+  "elevationM": 2276,
+  "aliases": []
+ },
+ {
+  "id": "Q679590",
+  "name": "Bromo",
+  "key": "bromo",
+  "lat": -7.943055555,
+  "lon": 112.953888888,
+  "elevationM": 2329,
+  "aliases": []
+ },
+ {
+  "id": "Q455404",
+  "name": "Bukit Amasing",
+  "key": "bukit amasing",
+  "lat": -0.532222222,
+  "lon": 127.498055555,
+  "elevationM": 1030,
+  "aliases": []
+ },
+ {
+  "id": "Q856301",
+  "name": "Bukit Bibinoi",
+  "key": "bukit bibinoi",
+  "lat": -0.766666666,
+  "lon": 127.716666666,
+  "elevationM": 900,
+  "aliases": []
+ },
+ {
+  "id": "Q4180299",
+  "name": "Bukit Daun",
+  "key": "bukit daun",
+  "lat": -3.38,
+  "lon": 102.37,
+  "elevationM": 2467,
+  "aliases": []
+ },
+ {
+  "id": "Q4986919",
+  "name": "Bukit Lumut Balai",
+  "key": "bukit lumut balai",
+  "lat": -4.22,
+  "lon": 103.62,
+  "elevationM": 2055,
+  "aliases": []
+ },
+ {
+  "id": "Q126589",
+  "name": "Butak",
+  "key": "butak",
+  "lat": -7.92,
+  "lon": 112.45,
+  "elevationM": 2868,
+  "aliases": []
+ },
+ {
+  "id": "Q507179",
+  "name": "Ceremai",
+  "key": "ceremai",
+  "lat": -6.891944444,
+  "lon": 108.4,
+  "elevationM": 3078,
+  "aliases": []
+ },
+ {
+  "id": "Q1110232",
+  "name": "Colo",
+  "key": "colo",
+  "lat": -0.17,
+  "lon": 121.608,
+  "elevationM": 507,
+  "aliases": []
+ },
+ {
+  "id": "Q2786660",
+  "name": "Dataran Malang",
+  "key": "dataran malang",
+  "lat": -8.02,
+  "lon": 112.68,
+  "elevationM": 680,
+  "aliases": []
+ },
+ {
+  "id": "Q1186618",
+  "name": "Dempo",
+  "key": "dempo",
+  "lat": -4.03,
+  "lon": 103.13,
+  "elevationM": 3173,
+  "aliases": []
+ },
+ {
+  "id": "Q2340739",
+  "name": "Dukono",
+  "key": "dukono",
+  "lat": 1.699166666,
+  "lon": 127.878333333,
+  "elevationM": 1335,
+  "aliases": []
+ },
+ {
+  "id": "Q2382787",
+  "name": "Ebulobo",
+  "key": "ebulobo",
+  "lat": -8.82,
+  "lon": 121.18,
+  "elevationM": 2124,
+  "aliases": []
+ },
+ {
+  "id": "Q385596",
+  "name": "Egon",
+  "key": "egon",
+  "lat": -8.666666666,
+  "lon": 122.45,
+  "elevationM": 1703,
+  "aliases": []
+ },
+ {
+  "id": "Q4175840",
+  "name": "Emperor of China",
+  "key": "emperor of china",
+  "lat": -6.61666667,
+  "lon": 124.21666667,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q3046998",
+  "name": "Empung",
+  "key": "empung",
+  "lat": 1.37423,
+  "lon": 124.80324,
+  "elevationM": 1340,
+  "aliases": []
+ },
+ {
+  "id": "Q911748",
+  "name": "Galunggung",
+  "key": "galunggung",
+  "lat": -7.2567315,
+  "lon": 108.0770588,
+  "elevationM": 2168,
+  "aliases": []
+ },
+ {
+  "id": "Q1467910",
+  "name": "Gamalama",
+  "key": "gamalama",
+  "lat": 0.807222222,
+  "lon": 127.333888888,
+  "elevationM": 1715,
+  "aliases": []
+ },
+ {
+  "id": "Q1493157",
+  "name": "Gamkonora",
+  "key": "gamkonora",
+  "lat": 1.38,
+  "lon": 127.53,
+  "elevationM": 1635,
+  "aliases": []
+ },
+ {
+  "id": "Q1145123",
+  "name": "Gede",
+  "key": "gede",
+  "lat": -6.788333333,
+  "lon": 106.981666666,
+  "elevationM": 2958,
+  "aliases": []
+ },
+ {
+  "id": "Q40981",
+  "name": "Geureudong",
+  "key": "geureudong",
+  "lat": 4.8105,
+  "lon": 96.8169,
+  "elevationM": 2885,
+  "aliases": []
+ },
+ {
+  "id": "Q2735753",
+  "name": "Guntur",
+  "key": "guntur",
+  "lat": -7.143333333,
+  "lon": 107.839722222,
+  "elevationM": 2249,
+  "aliases": []
+ },
+ {
+  "id": "Q1899342",
+  "name": "Gunungapi Wetar",
+  "key": "gunungapi wetar",
+  "lat": -6.641666666,
+  "lon": 126.65,
+  "elevationM": 239,
+  "aliases": []
+ },
+ {
+  "id": "Q13199282",
+  "name": "Halimun",
+  "key": "halimun",
+  "lat": -6.710428,
+  "lon": 106.451239,
+  "elevationM": 1929,
+  "aliases": []
+ },
+ {
+  "id": "Q4176217",
+  "name": "Hutapanjang",
+  "key": "hutapanjang",
+  "lat": -2.33,
+  "lon": 101.6,
+  "elevationM": 2021,
+  "aliases": []
+ },
+ {
+  "id": "Q548489",
+  "name": "Ijen",
+  "key": "ijen",
+  "lat": -8.058,
+  "lon": 114.242,
+  "elevationM": 2769,
+  "aliases": []
+ },
+ {
+  "id": "Q2364075",
+  "name": "Iliboleng",
+  "key": "iliboleng",
+  "lat": -8.344,
+  "lon": 123.252,
+  "elevationM": 1659,
+  "aliases": []
+ },
+ {
+  "id": "Q4175476",
+  "name": "Ililabalekan",
+  "key": "ililabalekan",
+  "lat": -8.55,
+  "lon": 123.38,
+  "elevationM": 1018,
+  "aliases": []
+ },
+ {
+  "id": "Q2597888",
+  "name": "Ilimuda",
+  "key": "ilimuda",
+  "lat": -8.478,
+  "lon": 122.671,
+  "elevationM": 1100,
+  "aliases": []
+ },
+ {
+  "id": "Q2483640",
+  "name": "Iliwerung",
+  "key": "iliwerung",
+  "lat": -8.532222222,
+  "lon": 123.573333333,
+  "elevationM": 1018,
+  "aliases": []
+ },
+ {
+  "id": "Q8523728",
+  "name": "Imun",
+  "key": "imun",
+  "lat": 2.158,
+  "lon": 98.93,
+  "elevationM": 1505,
+  "aliases": []
+ },
+ {
+  "id": "Q2352524",
+  "name": "Ine Lika",
+  "key": "ine lika",
+  "lat": -8.73,
+  "lon": 120.98,
+  "elevationM": 1559,
+  "aliases": []
+ },
+ {
+  "id": "Q4175389",
+  "name": "Inierie",
+  "key": "inierie",
+  "lat": -8.875,
+  "lon": 120.95,
+  "elevationM": 2245,
+  "aliases": []
+ },
+ {
+  "id": "Q2549314",
+  "name": "Iyang-Argapura",
+  "key": "iyang argapura",
+  "lat": -7.97,
+  "lon": 113.57,
+  "elevationM": 3088,
+  "aliases": []
+ },
+ {
+  "id": "Q150081",
+  "name": "Kaba",
+  "key": "kaba",
+  "lat": -3.52,
+  "lon": 102.62,
+  "elevationM": 1940,
+  "aliases": []
+ },
+ {
+  "id": "Q2181214",
+  "name": "Kamojang",
+  "key": "kamojang",
+  "lat": -7.125,
+  "lon": 107.8,
+  "elevationM": 1730,
+  "aliases": []
+ },
+ {
+  "id": "Q2643122",
+  "name": "Karaha Crater",
+  "key": "karaha crater",
+  "lat": -7.12,
+  "lon": 108.08,
+  "elevationM": 1155,
+  "aliases": []
+ },
+ {
+  "id": "Q2344869",
+  "name": "Karang",
+  "key": "karang",
+  "lat": -6.269166666,
+  "lon": 106.05,
+  "elevationM": 1778,
+  "aliases": []
+ },
+ {
+  "id": "Q1053413",
+  "name": "Karangetang",
+  "key": "karangetang",
+  "lat": 2.777777777,
+  "lon": 125.4075,
+  "elevationM": 1784,
+  "aliases": []
+ },
+ {
+  "id": "Q2746605",
+  "name": "Kawi",
+  "key": "kawi",
+  "lat": -7.92,
+  "lon": 112.45,
+  "elevationM": 2551,
+  "aliases": []
+ },
+ {
+  "id": "Q11737565",
+  "name": "Kawi-Butak",
+  "key": "kawi butak",
+  "lat": -7.92,
+  "lon": 112.45,
+  "elevationM": 2651,
+  "aliases": []
+ },
+ {
+  "id": "Q1738211",
+  "name": "Kelimutu",
+  "key": "kelimutu",
+  "lat": -8.77,
+  "lon": 121.82,
+  "elevationM": 1639,
+  "aliases": []
+ },
+ {
+  "id": "Q675072",
+  "name": "Kendang",
+  "key": "kendang",
+  "lat": -7.23,
+  "lon": 107.72,
+  "elevationM": 2608,
+  "aliases": []
+ },
+ {
+  "id": "Q827728",
+  "name": "Kerinci",
+  "key": "kerinci",
+  "lat": -1.696944,
+  "lon": 101.264444,
+  "elevationM": 3805,
+  "aliases": []
+ },
+ {
+  "id": "Q4271911",
+  "name": "Kiaraberes-Gagak",
+  "key": "kiaraberes gagak",
+  "lat": -6.73,
+  "lon": 106.65,
+  "elevationM": 1511,
+  "aliases": []
+ },
+ {
+  "id": "Q587915",
+  "name": "Kie Besi",
+  "key": "kie besi",
+  "lat": 0.333333333,
+  "lon": 127.366666666,
+  "elevationM": 1357,
+  "aliases": []
+ },
+ {
+  "id": "Q1193306",
+  "name": "Klabat",
+  "key": "klabat",
+  "lat": 1.453333333,
+  "lon": 125.030833333,
+  "elevationM": 1995,
+  "aliases": []
+ },
+ {
+  "id": "Q2580533",
+  "name": "Kunyit",
+  "key": "kunyit",
+  "lat": -2.275833333,
+  "lon": 101.49,
+  "elevationM": 2151,
+  "aliases": []
+ },
+ {
+  "id": "Q538300",
+  "name": "Lamongan",
+  "key": "lamongan",
+  "lat": -7.979,
+  "lon": 113.342,
+  "elevationM": 1651,
+  "aliases": []
+ },
+ {
+  "id": "Q2396057",
+  "name": "Leroboleng",
+  "key": "leroboleng",
+  "lat": -8.358,
+  "lon": 122.842,
+  "elevationM": 1095,
+  "aliases": []
+ },
+ {
+  "id": "Q2729991",
+  "name": "Lewotobi",
+  "key": "lewotobi",
+  "lat": -8.533333333,
+  "lon": 122.766666666,
+  "elevationM": 1703,
+  "aliases": []
+ },
+ {
+  "id": "Q1911044",
+  "name": "Lewotolo",
+  "key": "lewotolo",
+  "lat": -8.272,
+  "lon": 123.505,
+  "elevationM": 1423,
+  "aliases": []
+ },
+ {
+  "id": "Q265585",
+  "name": "Lokon",
+  "key": "lokon",
+  "lat": 1.358055555,
+  "lon": 124.791944444,
+  "elevationM": 1580,
+  "aliases": []
+ },
+ {
+  "id": "Q1087336",
+  "name": "Lubuk Raya",
+  "key": "lubuk raya",
+  "lat": 1.478,
+  "lon": 99.209,
+  "elevationM": 1862,
+  "aliases": []
+ },
+ {
+  "id": "Q383862",
+  "name": "Lurus",
+  "key": "lurus",
+  "lat": -7.739166666,
+  "lon": 113.580277777,
+  "elevationM": 539,
+  "aliases": []
+ },
+ {
+  "id": "Q3043015",
+  "name": "Mahawu",
+  "key": "mahawu",
+  "lat": 1.358,
+  "lon": 124.858,
+  "elevationM": 1324,
+  "aliases": []
+ },
+ {
+  "id": "Q670643",
+  "name": "Malabar",
+  "key": "malabar",
+  "lat": -7.13,
+  "lon": 107.65,
+  "elevationM": 2343,
+  "aliases": []
+ },
+ {
+  "id": "Q23925862",
+  "name": "Malintang",
+  "key": "malintang",
+  "lat": 0.47,
+  "lon": 99.67,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q1960702",
+  "name": "Marapi",
+  "key": "marapi",
+  "lat": -0.380555555,
+  "lon": 100.473333333,
+  "elevationM": 2885,
+  "aliases": []
+ },
+ {
+  "id": "Q134108",
+  "name": "Merapi",
+  "key": "merapi",
+  "lat": -7.541388888,
+  "lon": 110.446111111,
+  "elevationM": 2910,
+  "aliases": []
+ },
+ {
+  "id": "Q598893",
+  "name": "Merbabu",
+  "key": "merbabu",
+  "lat": -7.455,
+  "lon": 110.44,
+  "elevationM": 3142,
+  "aliases": []
+ },
+ {
+  "id": "Q2746639",
+  "name": "Mount Ungaran",
+  "key": "ungaran",
+  "lat": -7.18,
+  "lon": 110.33,
+  "elevationM": 2050,
+  "aliases": []
+ },
+ {
+  "id": "Q3217435",
+  "name": "Muria",
+  "key": "muria",
+  "lat": -6.61666667,
+  "lon": 110.88333333,
+  "elevationM": 1625,
+  "aliases": []
+ },
+ {
+  "id": "Q1872082",
+  "name": "Ndete Napu",
+  "key": "ndete napu",
+  "lat": -8.72,
+  "lon": 121.78,
+  "elevationM": 750,
+  "aliases": []
+ },
+ {
+  "id": "Q2237908",
+  "name": "Nieuwerkerk",
+  "key": "nieuwerkerk",
+  "lat": -6.6,
+  "lon": 124.675,
+  "elevationM": -2285,
+  "aliases": []
+ },
+ {
+  "id": "Q2432393",
+  "name": "Nila",
+  "key": "nila",
+  "lat": -6.73,
+  "lon": 129.5,
+  "elevationM": 781,
+  "aliases": []
+ },
+ {
+  "id": "Q113372328",
+  "name": "Ophir",
+  "key": "ophir",
+  "lat": 0.079166666,
+  "lon": 99.983333333,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q11222863",
+  "name": "Pangrango",
+  "key": "pangrango",
+  "lat": -6.766666666,
+  "lon": 106.95,
+  "elevationM": 3019,
+  "aliases": []
+ },
+ {
+  "id": "Q1073134",
+  "name": "Papandayan",
+  "key": "papandayan",
+  "lat": -7.328969444,
+  "lon": 107.715702777,
+  "elevationM": 2665,
+  "aliases": []
+ },
+ {
+  "id": "Q3492253",
+  "name": "Patah",
+  "key": "patah",
+  "lat": -4.27,
+  "lon": 103.3,
+  "elevationM": 2817,
+  "aliases": []
+ },
+ {
+  "id": "Q1373835",
+  "name": "Patuha",
+  "key": "patuha",
+  "lat": -7.160277777,
+  "lon": 107.4,
+  "elevationM": 2434,
+  "aliases": []
+ },
+ {
+  "id": "Q1972311",
+  "name": "Pegunungan Dieng",
+  "key": "pegunungan dieng",
+  "lat": -7.2,
+  "lon": 109.92,
+  "elevationM": 2565,
+  "aliases": []
+ },
+ {
+  "id": "Q2171115",
+  "name": "Penanggungan",
+  "key": "penanggungan",
+  "lat": -7.62,
+  "lon": 112.63,
+  "elevationM": 1653,
+  "aliases": []
+ },
+ {
+  "id": "Q1087270",
+  "name": "Perbakti",
+  "key": "perbakti",
+  "lat": -6.75,
+  "lon": 106.68,
+  "elevationM": 1699,
+  "aliases": []
+ },
+ {
+  "id": "Q12773636",
+  "name": "Perbakti-Gagak",
+  "key": "perbakti gagak",
+  "lat": -6.75,
+  "lon": 106.7,
+  "elevationM": 1699,
+  "aliases": []
+ },
+ {
+  "id": "Q2328794",
+  "name": "Poco Leok",
+  "key": "poco leok",
+  "lat": -8.68,
+  "lon": 120.48,
+  "elevationM": 1675,
+  "aliases": []
+ },
+ {
+  "id": "Q2901375",
+  "name": "Poco Ranaka",
+  "key": "poco ranaka",
+  "lat": -8.63664,
+  "lon": 120.53095,
+  "elevationM": 2350,
+  "aliases": []
+ },
+ {
+  "id": "Q1245622",
+  "name": "Pulau Krakatau",
+  "key": "pulau krakatau",
+  "lat": -6.1525,
+  "lon": 105.444269,
+  "elevationM": 820,
+  "aliases": []
+ },
+ {
+  "id": "Q1847015",
+  "name": "Pulau Manuk, Maluku",
+  "key": "pulau manuk maluku",
+  "lat": -5.5436111,
+  "lon": 130.3058306,
+  "elevationM": 249,
+  "aliases": []
+ },
+ {
+  "id": "Q13149153",
+  "name": "Pulau Moti",
+  "key": "pulau moti",
+  "lat": 0.456942,
+  "lon": 127.410831,
+  "elevationM": 950,
+  "aliases": []
+ },
+ {
+  "id": "Q42118",
+  "name": "Pulosari",
+  "key": "pulosari",
+  "lat": -6.341666666,
+  "lon": 105.978333333,
+  "elevationM": 1346,
+  "aliases": []
+ },
+ {
+  "id": "Q12763633",
+  "name": "Q12763633",
+  "key": "q12763633",
+  "lat": 4.768889,
+  "lon": 96.8211,
+  "elevationM": 2617,
+  "aliases": []
+ },
+ {
+  "id": "Q42174",
+  "name": "Rajabasa",
+  "key": "rajabasa",
+  "lat": -5.783333333,
+  "lon": 105.625,
+  "elevationM": 1281,
+  "aliases": []
+ },
+ {
+  "id": "Q2033748",
+  "name": "Raung",
+  "key": "raung",
+  "lat": -8.125,
+  "lon": 114.041666666,
+  "elevationM": 3260,
+  "aliases": []
+ },
+ {
+  "id": "Q2381562",
+  "name": "Riang Kotang",
+  "key": "riang kotang",
+  "lat": -8.3,
+  "lon": 122.892,
+  "elevationM": 200,
+  "aliases": []
+ },
+ {
+  "id": "Q847323",
+  "name": "Rinjani",
+  "key": "rinjani",
+  "lat": -8.416666666,
+  "lon": 116.466666666,
+  "elevationM": 3726,
+  "aliases": []
+ },
+ {
+  "id": "Q1328417",
+  "name": "Rokatenda",
+  "key": "rokatenda",
+  "lat": -8.316666666,
+  "lon": 121.708333333,
+  "elevationM": 875,
+  "aliases": []
+ },
+ {
+  "id": "Q2094734",
+  "name": "Ruang",
+  "key": "ruang",
+  "lat": 2.305,
+  "lon": 125.365,
+  "elevationM": 725,
+  "aliases": []
+ },
+ {
+  "id": "Q669559",
+  "name": "Salak",
+  "key": "salak",
+  "lat": -6.715833333,
+  "lon": 106.733611111,
+  "elevationM": 2211,
+  "aliases": []
+ },
+ {
+  "id": "Q29598119",
+  "name": "Samalas",
+  "key": "samalas",
+  "lat": -8.415,
+  "lon": 116.414,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q2573663",
+  "name": "Sangeang Api",
+  "key": "sangeang api",
+  "lat": -8.18,
+  "lon": 119.05,
+  "elevationM": 1949,
+  "aliases": []
+ },
+ {
+  "id": "Q7424073",
+  "name": "Sarik-Gajah",
+  "key": "sarik gajah",
+  "lat": 0.08,
+  "lon": 100.2,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q270158",
+  "name": "Semeru",
+  "key": "semeru",
+  "lat": -8.1,
+  "lon": 112.916666666,
+  "elevationM": 3676,
+  "aliases": []
+ },
+ {
+  "id": "Q2162588",
+  "name": "Sempu",
+  "key": "sempu",
+  "lat": 1.13,
+  "lon": 124.758,
+  "elevationM": 1549,
+  "aliases": []
+ },
+ {
+  "id": "Q1083948",
+  "name": "Serua",
+  "key": "serua",
+  "lat": -6.3,
+  "lon": 130,
+  "elevationM": 608,
+  "aliases": []
+ },
+ {
+  "id": "Q29595",
+  "name": "Seulawah Agam",
+  "key": "seulawah agam",
+  "lat": 5.448,
+  "lon": 95.658,
+  "elevationM": 1810,
+  "aliases": []
+ },
+ {
+  "id": "Q2302908",
+  "name": "Sibayak",
+  "key": "sibayak",
+  "lat": 3.239166666,
+  "lon": 98.505555555,
+  "elevationM": 2212,
+  "aliases": []
+ },
+ {
+  "id": "Q1087355",
+  "name": "Sibualbuali",
+  "key": "sibualbuali",
+  "lat": 1.556,
+  "lon": 99.255,
+  "elevationM": 1819,
+  "aliases": []
+ },
+ {
+  "id": "Q207678",
+  "name": "Sinabung",
+  "key": "sinabung",
+  "lat": 3.17,
+  "lon": 98.391944444,
+  "elevationM": 2460,
+  "aliases": []
+ },
+ {
+  "id": "Q2038462",
+  "name": "Sindara",
+  "key": "sindara",
+  "lat": -7.301111111,
+  "lon": 109.996666666,
+  "elevationM": 3136,
+  "aliases": []
+ },
+ {
+  "id": "Q2188825",
+  "name": "Singgalang",
+  "key": "singgalang",
+  "lat": -0.391388888,
+  "lon": 100.331111111,
+  "elevationM": 2877,
+  "aliases": []
+ },
+ {
+  "id": "Q1322666",
+  "name": "Sirung",
+  "key": "sirung",
+  "lat": -8.516666666,
+  "lon": 124.133333333,
+  "elevationM": 862,
+  "aliases": []
+ },
+ {
+  "id": "Q580131",
+  "name": "Slamet",
+  "key": "slamet",
+  "lat": -7.239,
+  "lon": 109.22,
+  "elevationM": 3428,
+  "aliases": []
+ },
+ {
+  "id": "Q781529",
+  "name": "Soputan",
+  "key": "soputan",
+  "lat": 1.112,
+  "lon": 124.736,
+  "elevationM": 1784,
+  "aliases": []
+ },
+ {
+  "id": "Q29559",
+  "name": "Sorik Marapi",
+  "key": "sorik marapi",
+  "lat": 0.686,
+  "lon": 99.539,
+  "elevationM": 2145,
+  "aliases": []
+ },
+ {
+  "id": "Q7631570",
+  "name": "Submarine 1922",
+  "key": "submarine 1922",
+  "lat": 3.96667,
+  "lon": 124.167,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q2105492",
+  "name": "Sukaria",
+  "key": "sukaria",
+  "lat": -8.792,
+  "lon": 121.77,
+  "elevationM": 1500,
+  "aliases": []
+ },
+ {
+  "id": "Q1087196",
+  "name": "Sumbing Jambi",
+  "key": "sumbing jambi",
+  "lat": -2.414,
+  "lon": 101.728,
+  "elevationM": 2507,
+  "aliases": []
+ },
+ {
+  "id": "Q1677690",
+  "name": "Sumbing Jawa Tengah",
+  "key": "sumbing jawa tengah",
+  "lat": -7.385,
+  "lon": 110.0725,
+  "elevationM": 3371,
+  "aliases": []
+ },
+ {
+  "id": "Q2740999",
+  "name": "Talamau",
+  "key": "talamau",
+  "lat": 0.079166666,
+  "lon": 99.983333333,
+  "elevationM": 2919,
+  "aliases": []
+ },
+ {
+  "id": "Q2155367",
+  "name": "Talang",
+  "key": "talang",
+  "lat": -0.986,
+  "lon": 100.6925,
+  "elevationM": 2597,
+  "aliases": []
+ },
+ {
+  "id": "Q168714",
+  "name": "Tambora",
+  "key": "tambora",
+  "lat": -8.245277777,
+  "lon": 117.992777777,
+  "elevationM": 2850,
+  "aliases": []
+ },
+ {
+  "id": "Q2020545",
+  "name": "Tampomas",
+  "key": "tampomas",
+  "lat": -6.77,
+  "lon": 107.95,
+  "elevationM": 1684,
+  "aliases": []
+ },
+ {
+  "id": "Q40692",
+  "name": "Tandikat",
+  "key": "tandikat",
+  "lat": -0.432583333,
+  "lon": 100.317136111,
+  "elevationM": 2438,
+  "aliases": []
+ },
+ {
+  "id": "Q3120328",
+  "name": "Tangkoko",
+  "key": "tangkoko",
+  "lat": 1.52,
+  "lon": 125.2,
+  "elevationM": 1149,
+  "aliases": []
+ },
+ {
+  "id": "Q1190569",
+  "name": "Tangkuban Perahu",
+  "key": "tangkuban perahu",
+  "lat": -6.77,
+  "lon": 107.6,
+  "elevationM": 2084,
+  "aliases": []
+ },
+ {
+  "id": "Q126717",
+  "name": "Telaga Bodas",
+  "key": "telaga bodas",
+  "lat": -7.208,
+  "lon": 108.07,
+  "elevationM": 2201,
+  "aliases": []
+ },
+ {
+  "id": "Q123157",
+  "name": "Telomoyo",
+  "key": "telomoyo",
+  "lat": -7.37,
+  "lon": 110.4,
+  "elevationM": 1894,
+  "aliases": []
+ },
+ {
+  "id": "Q2190351",
+  "name": "Teon",
+  "key": "teon",
+  "lat": -6.92,
+  "lon": 129.125,
+  "elevationM": 728,
+  "aliases": []
+ },
+ {
+  "id": "Q4178015",
+  "name": "Tigalalu",
+  "key": "tigalalu",
+  "lat": 0.07,
+  "lon": 127.42,
+  "elevationM": 422,
+  "aliases": []
+ },
+ {
+  "id": "Q17191410",
+  "name": "Toba",
+  "key": "toba",
+  "lat": 2.616667,
+  "lon": 98.816667,
+  "elevationM": 905,
+  "aliases": []
+ },
+ {
+  "id": "Q7811550",
+  "name": "Tobaru",
+  "key": "tobaru",
+  "lat": 1.6133,
+  "lon": 127.6817,
+  "elevationM": 1035,
+  "aliases": []
+ },
+ {
+  "id": "Q2433163",
+  "name": "Wai Sano",
+  "key": "wai sano",
+  "lat": -8.71666667,
+  "lon": 120.0166667,
+  "elevationM": 903,
+  "aliases": []
+ },
+ {
+  "id": "Q2144882",
+  "name": "Wanggameti",
+  "key": "wanggameti",
+  "lat": -10.121667,
+  "lon": 120.225,
+  "elevationM": null,
+  "aliases": []
+ },
+ {
+  "id": "Q2854575",
+  "name": "Wayang",
+  "key": "wayang",
+  "lat": -7.208,
+  "lon": 107.63,
+  "elevationM": 2182,
+  "aliases": []
+ },
+ {
+  "id": "Q2011834",
+  "name": "Welirang",
+  "key": "welirang",
+  "lat": -7.7325,
+  "lon": 112.574722222,
+  "elevationM": 3156,
+  "aliases": []
+ },
+ {
+  "id": "Q956331",
+  "name": "Wilis",
+  "key": "wilis",
+  "lat": -7.808,
+  "lon": 111.758,
+  "elevationM": 2563,
+  "aliases": []
+ },
+ {
+  "id": "Q2025875",
+  "name": "Wurlali",
+  "key": "wurlali",
+  "lat": -7.125,
+  "lon": 128.675,
+  "elevationM": 868,
+  "aliases": []
+ },
+ {
+  "id": "Q2470142",
+  "name": "Yersey",
+  "key": "yersey",
+  "lat": -7.53,
+  "lon": 123.95,
+  "elevationM": -3800,
+  "aliases": []
+ }
+]
