@@ -331,6 +331,11 @@ function isRenderedOnScreen(element) {
  * filtering keeps the rail clear of whichever HUD variant is currently
  * visible without tying the layout to one screen height.
  */
+/** Minimum spacing between panel layout passes triggered by DOM mutations.
+ *  With every layer on, live panels (CCTV list, counters, HUD chips) mutate
+ *  many times per second, and each pass forces style and layout reads. */
+const PANEL_LAYOUT_MUTATION_MIN_INTERVAL_MS = 200;
+
 const RIGHT_STACK_OBSTACLE_SELECTOR = [
   '#cockpit-hud .cockpit-topline',
   '#cockpit-hud .cockpit-topline > div',
@@ -488,7 +493,7 @@ const SHARPEN_SHADER = /* glsl */ `
 `;
 
 /**
- * Central UI orchestrator for the God's Eye View application.
+ * Central UI orchestrator for the CAKRAWALA application.
  *
  * Responsibilities:
  * - CesiumJS PostProcessStage pipeline: registers per-style GLSL stages
@@ -2257,6 +2262,8 @@ export class StyleManager {
     this._leftStackReconsiderAutoCollapse = false;
     this._leftStackResizeObserver = null;
     this._leftStackMutationObserver = null;
+    this._leftStackMutationLayout = { timer: null, lastAt: -Infinity };
+    this._leftStackBaselineSignature = null;
     this._leftStackHudTransitionHandler = null;
     this._leftStackCollapsedHeights = new Map();
     this._leftStackPreferredPanelId = null;
@@ -2265,6 +2272,7 @@ export class StyleManager {
     this._rightStackReconsiderAutoCollapse = false;
     this._rightStackResizeObserver = null;
     this._rightStackMutationObserver = null;
+    this._rightStackMutationLayout = { timer: null, lastAt: -Infinity };
     this._rightStackHudTransitionHandler = null;
     this._rightStackPreferredPanelId = null;
     this._adaptivePanelSettleTimer = null;
@@ -6989,7 +6997,7 @@ export class StyleManager {
 
     if (typeof MutationObserver !== 'undefined') {
       this._rightStackMutationObserver = new MutationObserver(() => {
-        this._scheduleRightPanelLayout();
+        this._scheduleMutatedPanelLayout('right');
       });
       this._rightStackMutationObserver.observe(stack, {
         subtree: true,
@@ -7035,6 +7043,34 @@ export class StyleManager {
       }
       this._syncRightPanelAdaptiveLayout();
     });
+  }
+
+  /**
+   * Layout requests from the panel MutationObservers (live text, list
+   * rebuilds, HUD class churn) run at most once per
+   * PANEL_LAYOUT_MUTATION_MIN_INTERVAL_MS. The first request in a quiet window
+   * lays out on the next frame; the rest collapse into one trailing pass. Size
+   * changes (ResizeObserver) and explicit calls still schedule directly.
+   * @param {'left'|'right'} side - Which panel stack mutated.
+   * @returns {void}
+   */
+  _scheduleMutatedPanelLayout(side) {
+    const state = side === 'left' ? this._leftStackMutationLayout : this._rightStackMutationLayout;
+    if (!state || state.timer !== null) return;
+    const run = () => {
+      state.lastAt = performance.now();
+      if (side === 'left') this._scheduleLeftPanelLayout();
+      else this._scheduleRightPanelLayout();
+    };
+    const waitMs = PANEL_LAYOUT_MUTATION_MIN_INTERVAL_MS - (performance.now() - state.lastAt);
+    if (waitMs <= 0) {
+      run();
+      return;
+    }
+    state.timer = setTimeout(() => {
+      state.timer = null;
+      run();
+    }, waitMs);
   }
 
   /**
@@ -7256,7 +7292,7 @@ export class StyleManager {
 
     if (typeof MutationObserver !== 'undefined') {
       this._leftStackMutationObserver = new MutationObserver(() => {
-        this._scheduleLeftPanelLayout();
+        this._scheduleMutatedPanelLayout('left');
       });
       this._leftStackMutationObserver.observe(stack, {
         subtree: true,
@@ -7391,6 +7427,7 @@ export class StyleManager {
       stack.style.removeProperty('--left-stack-safe-bottom');
       stack.style.removeProperty('--left-stack-centered-height');
       stack.dataset.layoutMode = 'mobile';
+      this._leftStackBaselineSignature = null;
       for (const panel of panels) {
         panel.removeAttribute('aria-hidden');
         panel.style.removeProperty('--left-panel-allocated-height');
@@ -7587,7 +7624,20 @@ export class StyleManager {
     }
     // The right controls share this top baseline; update them after the left
     // accordion commits an HUD-variant or obstacle-driven position change.
-    this._scheduleRightPanelLayout();
+    // Passes that leave the baseline where it was skip the right rail's far
+    // costlier measure: the left pass reruns on live panel mutations, and
+    // the right rail keeps its own observers for everything else.
+    const baselineSignature = [
+      topValue,
+      stack.dataset.layoutMode,
+      this.hud.visible,
+      this.hud.getVariant(),
+      document.body.classList.contains('cockpit-mode'),
+    ].join('|');
+    if (baselineSignature !== this._leftStackBaselineSignature) {
+      this._leftStackBaselineSignature = baselineSignature;
+      this._scheduleRightPanelLayout();
+    }
   }
 
   /**
@@ -10447,6 +10497,11 @@ export class StyleManager {
     }
     clearTimeout(this._adaptivePanelSettleTimer);
     this._adaptivePanelSettleTimer = null;
+    for (const state of [this._leftStackMutationLayout, this._rightStackMutationLayout]) {
+      if (!state) continue;
+      clearTimeout(state.timer);
+      state.timer = null;
+    }
     this._leftStackResizeObserver?.disconnect();
     this._leftStackResizeObserver = null;
     this._leftStackMutationObserver?.disconnect();

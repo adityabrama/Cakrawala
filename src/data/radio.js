@@ -3,7 +3,7 @@
  *
  * Radio Browser supplies public-domain directory metadata through the local
  * `/api/radio/*` broker. Audio always travels directly from the broadcaster
- * to one active HTMLAudioElement after an explicit user action; GEV does not
+ * to one active HTMLAudioElement after an explicit user action; CAKRAWALA does not
  * proxy, cache, record, or redistribute streams.
  *
  * @module radio
@@ -794,11 +794,23 @@ export function radioSelectionBracketSvg(color = RADIO_CATEGORY_COLORS.other) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M2 13V2H13 M27 2H38V13 M38 27V38H27 M13 38H2V27" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="square"/></svg>`;
 }
 
+/** Display category per station object, valid while its `tags` value is unchanged. */
+const _stationCategoryCache = new WeakMap();
+
 /** Choose one stable display category for a station that may match several filters. */
 export function radioStationCategoryId(station) {
-  return RADIO_MARKER_CATEGORY_ORDER.find((categoryId) => (
-    stationMatchesRadioCategory(station, categoryId)
+  // The overlay asks for every clustered station's category on each publish,
+  // and the answer depends only on the station's tags.
+  const cacheable = station !== null && typeof station === 'object';
+  if (cacheable) {
+    const cached = _stationCategoryCache.get(station);
+    if (cached && cached.tags === station.tags) return cached.categoryId;
+  }
+  const categoryId = RADIO_MARKER_CATEGORY_ORDER.find((candidate) => (
+    stationMatchesRadioCategory(station, candidate)
   )) || 'other';
+  if (cacheable) _stationCategoryCache.set(station, { tags: station.tags, categoryId });
+  return categoryId;
 }
 
 /** Build canonical and detected-genre categories from station-level tags. */

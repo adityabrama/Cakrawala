@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   GOD'S EYE VIEW — Dark Sci-Fi UI
+   CAKRAWALA — Dark Sci-Fi UI
    Apple meets Blade Runner
    ═══════════════════════════════════════════════ */
 
@@ -492,9 +492,9 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 #title-bar .title-logo {
   position: relative;
   display: block;
-  width: 52px;
+  width: 44px;
   height: auto;
-  filter: drop-shadow(0 0 12px rgba(0, 246, 255, 0.5));
+  filter: drop-shadow(0 0 10px rgba(232, 176, 60, 0.38));
 }
 
 #title-bar .title-logo::before,
@@ -550,7 +550,7 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 }
 
 .brand-logo {
-  aspect-ratio: 775 / 520;
+  aspect-ratio: 450 / 512;
   overflow: visible;
   pointer-events: none;
 }
@@ -886,14 +886,24 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 
 .loader-content {
   text-align: center;
+  padding: 0 24px;
+}
+
+.loader-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 32px;
+  text-align: left;
 }
 
 .loader-logo {
   display: block;
-  width: 128px;
+  flex: none;
+  width: 112px;
   height: auto;
-  margin: 0 auto 24px;
-  filter: drop-shadow(0 0 24px rgba(0, 246, 255, 0.42));
+  filter: drop-shadow(0 0 22px rgba(232, 176, 60, 0.34));
   animation: logo-pulse 2s ease-in-out infinite;
 }
 
@@ -904,11 +914,46 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 
 .loader-content h2 {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 34px;
   font-weight: 600;
-  letter-spacing: 6px;
+  letter-spacing: 10px;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  text-shadow: 0 0 30px var(--accent-glow);
+  margin-bottom: 10px;
+}
+
+.loader-acronym {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  line-height: 1.6;
+  color: rgba(232, 234, 237, 0.6);
+}
+
+.loader-acronym span {
+  display: block;
+}
+
+.loader-acronym b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .loader-brand {
+    flex-direction: column;
+    gap: 18px;
+    text-align: center;
+  }
+
+  .loader-logo {
+    width: 88px;
+  }
+
+  .loader-content h2 {
+    font-size: 24px;
+    letter-spacing: 7px;
+  }
 }
 
 .loader-status {
@@ -6940,7 +6985,7 @@ body.scene-playback-mode :is(#clear-selected-layers, #reset-globe-view) {
   }
 
   #title-bar .title-logo {
-    width: 36px;
+    width: 30px;
   }
 
   #location-bar {

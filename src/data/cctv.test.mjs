@@ -37,6 +37,7 @@ import cctvLayer, {
   deactivateActiveCamera,
   CCTV_FOCUS_RESULT,
   FRUSTUM_GROUND_CLEARANCE_M,
+  MONITOR_BOTTOM_CLEARANCE_M,
   CCTV_CALIBRATION_STORAGE_KEY_V2,
   CCTV_CALIBRATION_STORAGE_KEY_V1,
   readCalibrationStoreV2,
@@ -395,20 +396,25 @@ test('unclamped pose: corners keep their true plane altitudes (no clamp applied)
   assert.ok(g.corners.tl.alt > g.corners.bl.alt, 'top corners sit above bottom corners');
 });
 
-test('ground clamp lifts the CAP CENTER only — the rectangle stays rigid (true pyramid)', () => {
+test('ground clamp lifts the rigid cap until its bottom edge clears the ground', () => {
   const g = computeFrustumGeometry(AUSTIN_FABRICATED_CAMERA, AUSTIN_GROUND);
-  const floor = AUSTIN_GROUND + FRUSTUM_GROUND_CLEARANCE_M;
-  // Unclamped cap alt would be 160 + 210·sin(-24°) ≈ 74.6 m — far underground.
-  assert.equal(g.capCenter.alt, floor, 'cap center clamps exactly to the floor');
-  // Corners derive rigidly from the lifted center: alt = floor ± cos(pitch)·halfH.
-  // The bottom pair sits BELOW the floor (tiles occlude it) — per-corner clamping
-  // is what flattened the wireframe into a fan (owner field test 2026-07-04).
+  const bottomFloor = AUSTIN_GROUND + MONITOR_BOTTOM_CLEARANCE_M;
   const upVert = Math.cos(toRad(-24)) * g.halfH;
+  // Unclamped cap alt would be 160 + 210·sin(-24°) ≈ 74.6 m — far underground.
+  assert.ok(
+    Math.abs(g.capCenter.alt - (bottomFloor + upVert)) < 1e-6,
+    `cap center ${g.capCenter.alt} sits one half-height above the bottom floor`,
+  );
+  assert.ok(g.capCenter.alt > AUSTIN_GROUND + FRUSTUM_GROUND_CLEARANCE_M);
+  // Corners derive rigidly from the lifted center — per-corner clamping is what
+  // flattened the wireframe into a fan (owner field test 2026-07-04). No corner
+  // may sit inside the ground, or the tiles cut the live feed in half (owner
+  // field test 2026-09-14).
   for (const key of ['tl', 'tr']) {
-    assert.ok(Math.abs(g.corners[key].alt - (floor + upVert)) < 1e-6, `${key} alt ${g.corners[key].alt}`);
+    assert.ok(Math.abs(g.corners[key].alt - (bottomFloor + 2 * upVert)) < 1e-6, `${key} alt ${g.corners[key].alt}`);
   }
   for (const key of ['bl', 'br']) {
-    assert.ok(Math.abs(g.corners[key].alt - (floor - upVert)) < 1e-6, `${key} alt ${g.corners[key].alt}`);
+    assert.ok(Math.abs(g.corners[key].alt - bottomFloor) < 1e-6, `${key} alt ${g.corners[key].alt}`);
   }
 });
 

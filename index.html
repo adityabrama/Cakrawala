@@ -3,14 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>God's Eye View</title>
-  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <title>CAKRAWALA</title>
+  <link rel="icon" type="image/png" href="/cakrawala-icon.png" />
   <link rel="stylesheet" href="/style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="/fonts/fonts.css" />
 </head>
 <body>
   <div id="cesiumContainer"></div>
@@ -25,7 +21,7 @@
   <!-- Title -->
   <div id="title-bar">
     <div class="title-glow"></div>
-    <h1><span class="title-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span> <span>GOD'S EYE <span class="title-accent">VIEW</span></span></h1>
+    <h1><span class="title-logo brand-logo" aria-hidden="true"><img src="/cakrawala-logo.png" alt="" /></span> <span>CAKRA<span class="title-accent">WALA</span></span></h1>
     <p class="subtitle">NO PLACE LEFT BEHIND</p>
   </div>
 
@@ -882,7 +878,7 @@
     </div>
     <!-- Kept out of the footer row: it swaps to mission progress and errors, and
          a live region that also holds layout makes the row jump as it speaks. -->
-    <p class="first-run-note" data-first-run-status role="status" aria-live="polite">Tip: the GEV MIC button in the dock lets you talk to the map.</p>
+    <p class="first-run-note" data-first-run-status role="status" aria-live="polite">Tip: the MIC button in the dock lets you talk to the map.</p>
   </aside>
 
   <!-- POWER UP — in-app key setup. Dev-server only: src/keySetup.js removes
@@ -917,8 +913,13 @@
   <!-- Loading screen -->
   <div id="loading-screen">
     <div class="loader-content">
-      <span class="loader-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
-      <h2>GOD'S EYE <span class="title-accent">VIEW</span></h2>
+      <div class="loader-brand">
+        <span class="loader-logo brand-logo" aria-hidden="true"><img src="/cakrawala-logo.png" alt="" /></span>
+        <div class="loader-wordmark">
+          <h2>CAKRA<span class="title-accent">WALA</span></h2>
+          <p class="loader-acronym"><span><b>C</b>itra <b>A</b>ngkasa · <b>K</b>ewaspadaan <b>R</b>uang <b>A</b>ktual</span> <span><b>W</b>ilayah, <b>A</b>rmada, <b>L</b>alu-lintas &amp; <b>A</b>lam</span></p>
+        </div>
+      </div>
       <p class="loader-status">Initializing photorealistic world...</p>
     </div>
   </div>

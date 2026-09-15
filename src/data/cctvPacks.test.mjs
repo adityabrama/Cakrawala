@@ -1,0 +1,163 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+  createSingaporeSnapshotResolver,
+  fallbackCameraHeading,
+  loadCctvPacks,
+  parseBandaAcehCameras,
+  parseBandungCameras,
+  parseBanjarmasinCameras,
+  parseBengkuluCameras,
+  parseDigitrafficCameras,
+  parseHongKongCameras,
+  parsePalembangCameras,
+  parseSalatigaCameras,
+  parseSingaporeCameras,
+  parseYogyakartaCameras,
+} from './cctvPacks.js';
+
+test('Yogyakarta keeps only public cameras with coordinates and HLS links', () => {
+  const cameras = parseYogyakartaCameras([
+    { cctv_id: '1', cctv_title: 'Simpang APMD (PTZ)', cctv_link: 'https://cctvjss.jogjakota.go.id/atcs/ATCS_apmd.stream/playlist.m3u8', cctv_latitude: '-7.7919', cctv_longitude: '110.3916', cctv_status: '0' },
+    { cctv_id: '2', cctv_title: 'Private', cctv_link: 'https://cctvjss.jogjakota.go.id/a/playlist.m3u8', cctv_latitude: '-7.79', cctv_longitude: '110.39', cctv_status: '1' },
+    { cctv_id: '3', cctv_title: 'No coordinates', cctv_link: 'https://cctvjss.jogjakota.go.id/b/playlist.m3u8', cctv_latitude: '', cctv_longitude: '', cctv_status: '0' },
+    { cctv_id: '4', cctv_title: 'Not HLS', cctv_link: 'https://youtube.com/watch?v=x', cctv_latitude: '-7.79', cctv_longitude: '110.39', cctv_status: '0' },
+  ]);
+  assert.equal(cameras.length, 1);
+  assert.deepEqual(
+    { id: cameras[0].id, feedType: cameras[0].feedType, city: cameras[0].city, cityId: cameras[0].cityId, lat: cameras[0].lat },
+    { id: 'jogja-1', feedType: 'hls', city: 'Yogyakarta', cityId: 'yogyakarta', lat: -7.7919 },
+  );
+  assert.equal(cameras[0].headingDeg, fallbackCameraHeading('jogja-1'));
+});
+
+test('Bandung reads the Pelindung list and names the managing agency', () => {
+  const [camera] = parseBandungCameras([
+    { id: '37aeb2b6', cctv_name: 'CCTV BCH Laswi 1', lat: '-6.918449', lng: '107.631681', stream_cctv: 'https://pelindung.bandung.go.id:3443/video/DAHUA/bch.m3u8', dinas: 'BCH' },
+    { id: 'bad', cctv_name: 'Outside Indonesia', lat: '51.5', lng: '-0.12', stream_cctv: 'https://pelindung.bandung.go.id:3443/video/x.m3u8', dinas: 'X' },
+  ]);
+  assert.equal(camera.id, 'bandung-37aeb2b6');
+  assert.equal(camera.provider, 'Pemerintah Kota Bandung (BCH)');
+  assert.equal(camera.groundElevationM, 740);
+  assert.equal(camera.url, 'https://pelindung.bandung.go.id:3443/video/DAHUA/bch.m3u8');
+});
+
+test('Banda Aceh derives the stream and snapshot beside each embed page', () => {
+  const cameras = parseBandaAcehCameras([
+    { name: 'Bustanussalatin 7', pengelola: 'DISKOMINFOTIK Kota Banda Aceh', url: 'https://api.bandaacehkota.go.id/cctv/5031c4f6-655d-4610-9adf-85a0f5f3b52e.html', latitude: '5.55014', longitude: '95.3175', is_active: true },
+    { name: 'Inactive', url: 'https://api.bandaacehkota.go.id/cctv/021969d5-9423-48e7-8da3-1fb9a60d90dd.html', latitude: '5.55', longitude: '95.31', is_active: false },
+  ]);
+  assert.equal(cameras.length, 1);
+  assert.equal(cameras[0].url, 'https://api.bandaacehkota.go.id/cctv/memfs/5031c4f6-655d-4610-9adf-85a0f5f3b52e.m3u8');
+  assert.equal(cameras[0].snapshotUrl, 'https://api.bandaacehkota.go.id/cctv/memfs/5031c4f6-655d-4610-9adf-85a0f5f3b52e.jpg');
+  assert.match(cameras[0].license, /CC BY 4\.0/);
+});
+
+test('Palembang keeps public, active cameras and swaps GeoJSON coordinate order', () => {
+  const cameras = parsePalembangCameras({
+    data: [
+      { cctv_id: 'CCTV-SPBB-42', cctv_title: 'CCTV SP BOM BARU', cctv_scope: 'publik', cctv_status: 'active', location: { coordinates: [104.7788, -2.9776] }, cctv_link: 'https://stream.palembang.go.id/cam42/index.m3u8', cctv_opd: { nama_opd: 'Dinas Perhubungan' } },
+      { cctv_id: 'CCTV-INT-1', cctv_title: 'Internal', cctv_scope: 'internal', cctv_status: 'active', location: { coordinates: [104.77, -2.97] }, cctv_link: 'https://stream.palembang.go.id/cam1/index.m3u8' },
+    ],
+  });
+  assert.equal(cameras.length, 1);
+  assert.equal(cameras[0].lat, -2.9776);
+  assert.equal(cameras[0].lon, 104.7788);
+  assert.equal(cameras[0].provider, 'Dinas Perhubungan');
+});
+
+test('Salatiga parses the inline camera list with escaped slashes', () => {
+  const html = '<script>window.cams=[{"id":"627764fa-19e6-44a0-adef-de54f4f851f9","nama":"Gerbang Masuk","lokasi":"Kompleks Sukowati","tautan":"https:\\/\\/restreamer.salatiga.go.id\\/memfs\\/157deca9.m3u8","gambar":"https:\\/\\/cctv.salatiga.go.id\\/storage\\/cuplikan\\/627764fa.jpg?v=1","lat":"-7.331018","lng":"110.500935","grup":"Kompleks Sukowati"}];</script>';
+  const [camera] = parseSalatigaCameras(html);
+  assert.equal(camera.id, 'salatiga-627764fa-19e6-44a0-adef-de54f4f851f9');
+  assert.equal(camera.name, 'Kompleks Sukowati · Gerbang Masuk');
+  assert.equal(camera.url, 'https://restreamer.salatiga.go.id/memfs/157deca9.m3u8');
+  assert.equal(camera.snapshotUrl, 'https://cctv.salatiga.go.id/storage/cuplikan/627764fa.jpg?v=1');
+  assert.equal(camera.streamReferer, 'https://cctv.salatiga.go.id/', 'the stream server rejects requests without the portal referer');
+});
+
+test('Bengkulu keeps its redirecting stream links for the HLS proxy to follow', () => {
+  const html = 'const cameras = [{"id":1,"name":"Simpang Kominfo","stream":"https:\\/\\/cctv.bengkulukota.go.id\\/api\\/cctv\\/1\\/stream","lat":-3.7991162,"lng":102.2723309,"status":"online"},{"id":2,"name":"Simpang Jam","stream":"https:\\/\\/cctv.bengkulukota.go.id\\/api\\/cctv\\/2\\/stream","lat":-3.793733,"lng":102.2702546,"status":"offline"}];';
+  const cameras = parseBengkuluCameras(html);
+  assert.deepEqual(cameras.map((camera) => camera.id), ['bengkulu-1', 'bengkulu-2']);
+  assert.equal(cameras[0].url, 'https://cctv.bengkulukota.go.id/api/cctv/1/stream');
+  assert.equal(cameras[0].feedType, 'hls');
+});
+
+test('Banjarmasin reads the maps GeoJSON', () => {
+  const [camera] = parseBanjarmasinCameras({
+    data: { features: [{ properties: { uuid: '6bf68c1e', name: 'Kamboja Taman View 1', latitude: '-3.3220', longitude: '114.5875', url: 'https://rtsp-pemko-bjm.aldilinux.my.id/memfs/89775be6.m3u8' } }] },
+  });
+  assert.equal(camera.id, 'banjarmasin-6bf68c1e');
+  assert.equal(camera.city, 'Banjarmasin');
+  assert.equal(camera.streamReferer, 'https://cctv.banjarmasinkota.go.id/', 'the restreamer rejects requests without the portal referer');
+});
+
+test('Singapore cameras resolve their rotating image at frame time', () => {
+  const [camera] = parseSingaporeCameras({
+    items: [{ cameras: [{ camera_id: '2701', image: 'https://images.data.gov.sg/api/traffic-images/2026/09/a.jpg', location: { latitude: 1.447, longitude: 103.7716 } }] }],
+  });
+  assert.equal(camera.id, 'sg-2701');
+  assert.equal(camera.feedType, 'image');
+  assert.equal(camera.snapshotResolver, 'sg-lta');
+});
+
+test('Hong Kong XML keeps only official snapshot URLs and decodes entities', () => {
+  const xml = '<image-list><image><key>H429F</key><region>Hong Kong Island</region><district>Southern</district><description>Aberdeen Praya Road &amp; Fish Market</description><latitude>22.24845</latitude><longitude>114.1505</longitude><url>https://tdcctv.data.one.gov.hk/H429F.JPG</url></image><image><key>BAD</key><latitude>22.3</latitude><longitude>114.1</longitude><url>https://example.com/BAD.JPG</url></image></image-list>';
+  const cameras = parseHongKongCameras(xml);
+  assert.equal(cameras.length, 1);
+  assert.equal(cameras[0].name, 'Aberdeen Praya Road & Fish Market');
+  assert.equal(cameras[0].city, 'Hong Kong · Southern');
+});
+
+test('Finland takes one in-collection preset per gathering station', () => {
+  const cameras = parseDigitrafficCameras({
+    features: [
+      { geometry: { coordinates: [23.99616, 60.05374, 0] }, properties: { name: 'kt51_Inkoo', collectionStatus: 'GATHERING', presets: [{ id: 'C0150301', inCollection: false }, { id: 'C0150302', inCollection: true }] } },
+      { geometry: { coordinates: [24.0, 60.1, 0] }, properties: { name: 'removed', collectionStatus: 'REMOVED_TEMPORARILY', presets: [{ id: 'C0999901', inCollection: true }] } },
+    ],
+  });
+  assert.equal(cameras.length, 1);
+  assert.equal(cameras[0].id, 'fi-C0150302');
+  assert.equal(cameras[0].url, 'https://weathercam.digitraffic.fi/C0150302.jpg');
+  assert.equal(cameras[0].name, 'kt51 Inkoo');
+});
+
+test('one failing pack never blocks the others', async () => {
+  const packs = [
+    { id: 'ok', url: 'https://ok.example/list', kind: 'json', parse: (list) => list.map((id) => ({ id })) },
+    { id: 'down', url: 'https://down.example/list', kind: 'json', parse: () => [] },
+    { id: 'off', url: 'https://off.example/list', kind: 'json', parse: () => [{ id: 'never' }] },
+  ];
+  const warnings = [];
+  const fetchImpl = async (url) => {
+    if (url.includes('down')) throw new Error('connect timeout');
+    return { ok: true, json: async () => ['a', 'b'] };
+  };
+  const cameras = await loadCctvPacks(packs, {
+    fetchImpl,
+    isEnabled: (id) => id !== 'off',
+    log: { log() {}, warn: (message) => warnings.push(message) },
+  });
+  assert.deepEqual(cameras.map((camera) => camera.id), ['a', 'b']);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /down/);
+});
+
+test('the Singapore resolver caches its list and shares one refresh', async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    return {
+      ok: true,
+      json: async () => ({ items: [{ cameras: [{ camera_id: '1701', image: `https://images.data.gov.sg/api/traffic-images/${calls}.jpg`, location: { latitude: 1.3, longitude: 103.8 } }] }] }),
+    };
+  };
+  const resolve = createSingaporeSnapshotResolver({ fetchImpl, ttlMs: 60_000 });
+  const [first, second] = await Promise.all([resolve('sg-1701'), resolve('1701')]);
+  assert.equal(first, 'https://images.data.gov.sg/api/traffic-images/1.jpg');
+  assert.equal(second, first);
+  assert.equal(await resolve('sg-missing'), null);
+  assert.equal(calls, 1);
+});

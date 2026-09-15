@@ -1,5 +1,7 @@
+import * as Cesium from 'cesium';
 import { createAnnotationEngine } from './annotationEngine.js';
 import { createHybridAnnotationRenderer } from './hybridAnnotationRenderer.js';
+import { throttleCameraGroundHeight } from '../sceneHeightThrottle.js';
 
 /**
  * Initialize the map-annotation engine and expose it for the voice agent and
@@ -14,6 +16,11 @@ export function initAnnotations({ viewer, tileset = null }) {
   // World-space footprint draping; clamped marks can use the photoreal tiles.
   if (tileset) {
     try { tileset.enableCollision = true; } catch { /* older tileset */ }
+    // Collision makes Cesium pick the tileset under the camera on every moving
+    // frame (a GPU readback under WebGL 2); rate-limit that one query.
+    throttleCameraGroundHeight(viewer?.scene, {
+      terrainOnlyReference: Cesium.HeightReference.CLAMP_TO_TERRAIN,
+    });
   }
   const renderer = createHybridAnnotationRenderer(viewer);
   const engine = createAnnotationEngine({ viewer, renderer });

@@ -12,3 +12,5 @@ output/
 3d-models/
 pinokio/ENVIRONMENT
 pinokio/.installed
+.claude/
+.gev-intel/

@@ -128,6 +128,37 @@ export const DATA_CREDITS = [
       'Contains OS data © Crown copyright and database rights.',
   },
   {
+    key: 'indonesia-cctv',
+    html:
+      'CCTV cameras (Indonesia): public city CCTV portals of ' +
+      '<a href="https://cctv.jogjakota.go.id" target="_blank" rel="noopener">Yogyakarta</a>, ' +
+      '<a href="https://pelindung.bandung.go.id" target="_blank" rel="noopener">Bandung</a>, ' +
+      '<a href="https://cctv.bandaacehkota.go.id" target="_blank" rel="noopener">Banda Aceh</a> (CC BY 4.0), ' +
+      '<a href="https://cctv.palembang.go.id" target="_blank" rel="noopener">Palembang</a>, ' +
+      '<a href="https://cctv.salatiga.go.id" target="_blank" rel="noopener">Salatiga</a>, ' +
+      '<a href="https://cctv.bengkulukota.go.id" target="_blank" rel="noopener">Bengkulu</a> and ' +
+      '<a href="https://cctv.banjarmasinkota.go.id" target="_blank" rel="noopener">Banjarmasin</a>',
+  },
+  {
+    key: 'hk-td-cctv',
+    html:
+      'CCTV frames (Hong Kong): Transport Department, HKSAR Government — ' +
+      '<a href="https://data.gov.hk" target="_blank" rel="noopener">DATA.GOV.HK</a>',
+  },
+  {
+    key: 'sg-lta-cctv',
+    html:
+      'Traffic images (Singapore): contains information from Traffic Images accessed from ' +
+      '<a href="https://data.gov.sg" target="_blank" rel="noopener">data.gov.sg</a>, ' +
+      'made available under the Singapore Open Data Licence version 1.0',
+  },
+  {
+    key: 'digitraffic-cctv',
+    html:
+      'Road weather cameras (Finland): Fintraffic / ' +
+      '<a href="https://www.digitraffic.fi/en/" target="_blank" rel="noopener">Digitraffic</a>, licensed under CC BY 4.0',
+  },
+  {
     key: 'gbfs',
     html: 'Bikeshare availability: GBFS operator feeds (e.g. Austin BCycle)',
   },

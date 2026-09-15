@@ -1,7 +1,7 @@
 /**
  * @module cctv
  *
- * CCTV camera data layer for God's Eye View.
+ * CCTV camera data layer for CAKRAWALA.
  *
  * Architecture:
  * - Camera catalog: built from seed definitions (CAMERA_SEEDS) merged with live
@@ -46,6 +46,7 @@
  * plus CCTV-specific methods (selectCamera, cycleCamera, focusNearest, etc.).
  */
 import * as Cesium from 'cesium';
+import { attachHlsVideo } from './cctvHlsPlayer.js';
 import { registerSpriteCollection, restoreSpriteOrder } from './spriteOrder.js';
 import {
   CCTV_ACTIVATION_RESULT,
@@ -107,6 +108,8 @@ const FRAME_ENDPOINT = '/api/cctv/frame';
 const SOURCE_ENDPOINT = '/api/cctv/sources';
 const HEALTH_ENDPOINT = '/api/cctv/health';
 const MEDIA_ENDPOINT = '/api/cctv/media';
+/** Rewriting HLS proxy for feedType 'hls': playlists and the segments they list. */
+const HLS_ENDPOINT = '/api/cctv/hls';
 
 // ---------------------------------------------------------------------------
 // Timing and geometry constants
@@ -156,6 +159,12 @@ const PROJECTION_VERT_ASPECT = PROJECTION_CANVAS_WIDTH / PROJECTION_CANVAS_HEIGH
 // below groundAlt + this clearance, so a fabricated pitch (-24°) cannot bury
 // the monitor plane in the 3D tiles. Exported for the unit suite.
 export const FRUSTUM_GROUND_CLEARANCE_M = 2;
+/** Minimum height (metres) of the monitor plane's BOTTOM edge above the mount's
+ *  ground: clears two- to three-storey rooflines (and a few metres of grade
+ *  between the mount and the plane) so the tiles never cut the live feed.
+ *  Measured 2026-09-14: ground under a Banjarmasin plane sat 2.2 m above the
+ *  mount's own ground. */
+export const MONITOR_BOTTOM_CLEARANCE_M = 12;
 /** Public result codes for explicit CCTV camera flights. */
 export const CCTV_FOCUS_RESULT = Object.freeze({
   FOCUSED: 'focused',
@@ -887,10 +896,10 @@ function projectPoint(latDeg, lonDeg, bearingDeg, distanceM) {
  *   vFov      = 2·atan(tan(hFov/2) / (16/9))   → halfH = R·tan(vFov/2)
  *   upOffset  = cos(pitch)·halfH vertical + (−sin(pitch))·halfH along heading
  *   corners   = (capCenter ∓ halfW toward heading∓90°) ± upOffset
- * The cap CENTER altitude clamps to ≥ groundAltM + 2 m (§6 risk: fabricated
- * pitch must never bury the plane's anchor); corners derive rigidly from the
- * clamped center so the wireframe rays always terminate on the plane's
- * corners — the bottom pair may dip below ground (tiles occlude it).
+ * The cap lifts rigidly until its BOTTOM edge sits ≥ groundAltM +
+ * MONITOR_BOTTOM_CLEARANCE_M (§6 risk: fabricated pitch must never bury the
+ * plane); corners derive rigidly from the lifted center so the wireframe rays
+ * always terminate on the plane's corners.
  *
  * @param {Object} camera - Pose: lat, lon, headingDeg, pitchDeg, fovDeg,
  *   rangeM, mountHeightM.
@@ -930,13 +939,17 @@ export function computeFrustumGeometry(camera, groundAltM, rangeOverrideM = null
   const capL = projectPoint(capLL.lat, capLL.lon, heading - 90, halfW);
   const capR = projectPoint(capLL.lat, capLL.lon, heading + 90, halfW);
   // Ground clamp (§6 risk): lift the CAP CENTER once so a fabricated pitch
-  // never buries the plane's anchor — then derive the corners RIGIDLY from the
-  // lifted center. Clamping each corner independently flattened the wireframe
-  // into a ground-hugging fan while the rigid plane kept its height (owner
-  // field test 2026-07-04): the corner rays must always terminate exactly on
-  // the monitor plane's corners. The bottom pair may dip below ground; the 3D
-  // tiles occlude that portion, exactly as they do for the plane itself.
-  const minAlt = ground + FRUSTUM_GROUND_CLEARANCE_M;
+  // never buries the plane — then derive the corners RIGIDLY from the lifted
+  // center. Clamping each corner independently flattened the wireframe into a
+  // ground-hugging fan while the rigid plane kept its height (owner field test
+  // 2026-07-04): the corner rays must always terminate exactly on the monitor
+  // plane's corners. The lift is sized for the plane's BOTTOM edge: lifting
+  // only the center left the lower half of the live feed inside the 3D tiles
+  // at the default pitch (owner field test 2026-09-14).
+  const minAlt = Math.max(
+    ground + FRUSTUM_GROUND_CLEARANCE_M,
+    ground + MONITOR_BOTTOM_CLEARANCE_M + upVert,
+  );
   const capAltClamped = Math.max(minAlt, capAlt);
   const corner = (base, sign) => {
     const ll = projectPoint(base.lat, base.lon, heading, sign * upHoriz);
@@ -1496,6 +1509,10 @@ function frameUrlFor(camera, refreshMs = ACTIVE_FRAME_REFRESH_MS) {
  * @returns {string} Media URL.
  */
 function mediaUrlFor(camera) {
+  if (normalizeFeedType(camera.feedType) === 'hls') {
+    // Live playlists reload themselves; a cache-busting query would only defeat that.
+    return `${HLS_ENDPOINT}/${encodeURIComponent(camera.id)}/playlist.m3u8`;
+  }
   return `${MEDIA_ENDPOINT}/${encodeURIComponent(camera.id)}?ts=${Math.floor(Date.now() / 15000)}`;
 }
 
@@ -1719,7 +1736,11 @@ function createProjectionRuntime(record) {
     video.playsInline = true;
     video.crossOrigin = 'anonymous';
     video.preload = 'auto';
-    video.src = mediaUrlFor(record.camera);
+    if (feedType === 'hls') {
+      runtime.detachHls = attachHlsVideo(video, mediaUrlFor(record.camera));
+    } else {
+      video.src = mediaUrlFor(record.camera);
+    }
     video.addEventListener('canplay', () => {
       video.play().catch(() => {});
     });
@@ -1781,6 +1802,8 @@ function ensureProjectionRuntime(record) {
 function destroyProjectionRuntime(runtime) {
   if (!runtime) return;
   if (runtime.video) {
+    runtime.detachHls?.();
+    runtime.detachHls = null;
     runtime.video.pause();
     runtime.video.removeAttribute('src');
     runtime.video.load();
@@ -1947,7 +1970,9 @@ function startProjectionLoop() {
     const active = getActiveRecord();
     if (_enabled && _showProjection && active) {
       ensureProjectionRuntime(active);
-      if (active.projection?.video) {
+      // play() only when stopped: a playing or buffering element needs no call,
+      // and a per-frame play() allocates a promise every tick.
+      if (active.projection?.video?.paused) {
         active.projection.video.play().catch(() => {});
       }
       if (active.projection) {
@@ -3432,7 +3457,9 @@ function getPublicCameraState(record, activeId = null) {
     calBadge: deriveCalBadge(camera),
     poseSource: camera.poseSource || null,
     basePose: camera.basePose ? { ...camera.basePose } : null,
-    frameUrl: frameUrlFor(camera, refreshMs),
+    // Built on read: the full catalog is republished during the geometry
+    // drain, and only the active camera's URL is ever consumed.
+    get frameUrl() { return frameUrlFor(camera, refreshMs); },
     mediaUrl: mediaUrlFor(camera),
   };
 }

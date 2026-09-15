@@ -10,8 +10,85 @@ import { viewportBias, placesNearViewRecovery } from './annotations/annotationRe
  *   heading — optimal camera heading in degrees (0=N, 90=E, 180=S, 270=W)
  *   pitch   — camera tilt in degrees (negative = looking down)
  *   buildingHeight — estimated height of landmark center above ground (meters)
+ *   groundElevation — optional per-POI override of the city's groundElevation,
+ *                     for landmarks well above or below the city's base height
  */
 export const CITY_POIS = {
+  // Indonesia. Landmark coordinates verified against OpenStreetMap (2026-09-14).
+  // Ground heights are SRTM 30 m elevations converted to the WGS84 ellipsoid with
+  // EGM96; landmarks far above their city's base carry a per-POI override.
+  jakarta: {
+    name: 'Jakarta',
+    groundElevation: 23,
+    viewBounds: { southwest: { lat: -6.37, lng: 106.68 }, northeast: { lat: -6.08, lng: 106.98 } },
+    pois: [
+      { name: 'National Monument (Monas)', lat: -6.1754, lon: 106.8272, alt: 700, pitch: -25, heading: 0, buildingHeight: 65 },
+      { name: 'Istiqlal Mosque', lat: -6.1702, lon: 106.8310, alt: 600, pitch: -30, heading: 45, buildingHeight: 30 },
+      { name: 'Autograph Tower', lat: -6.1990, lon: 106.8213, alt: 1100, pitch: -15, heading: 30, buildingHeight: 190 },
+      { name: 'Gelora Bung Karno Stadium', lat: -6.2186, lon: 106.8026, alt: 1000, pitch: -35, heading: 0, buildingHeight: 25, groundElevation: 52 },
+      { name: 'Kota Tua (Old Town)', lat: -6.1352, lon: 106.8133, alt: 450, pitch: -30, heading: 180, buildingHeight: 12 },
+    ],
+  },
+  bandung: {
+    name: 'Bandung',
+    groundElevation: 740,
+    viewBounds: { southwest: { lat: -6.970, lng: 107.545 }, northeast: { lat: -6.837, lng: 107.740 } },
+    pois: [
+      { name: 'Gedung Sate', lat: -6.9025, lon: 107.6188, alt: 500, pitch: -25, heading: 0, buildingHeight: 20 },
+      { name: 'Gedung Merdeka', lat: -6.9210, lon: 107.6092, alt: 400, pitch: -28, heading: 90, buildingHeight: 12 },
+      { name: 'Grand Mosque of Bandung', lat: -6.9219, lon: 107.6063, alt: 550, pitch: -25, heading: 0, buildingHeight: 40 },
+      { name: 'Pasupati Bridge', lat: -6.8991, lon: 107.6067, alt: 900, pitch: -25, heading: 90, buildingHeight: 20 },
+      { name: 'Braga Street', lat: -6.9206, lon: 107.6099, alt: 450, pitch: -30, heading: 0, buildingHeight: 10 },
+    ],
+  },
+  yogyakarta: {
+    name: 'Yogyakarta',
+    groundElevation: 145,
+    viewBounds: { southwest: { lat: -7.840, lng: 110.344 }, northeast: { lat: -7.766, lng: 110.407 } },
+    pois: [
+      { name: 'Tugu Monument', lat: -7.7829, lon: 110.3671, alt: 350, pitch: -25, heading: 0, buildingHeight: 8 },
+      { name: 'Kraton Palace', lat: -7.8076, lon: 110.3639, alt: 700, pitch: -35, heading: 0, buildingHeight: 10 },
+      { name: 'Malioboro Street', lat: -7.7932, lon: 110.3658, alt: 700, pitch: -30, heading: 0, buildingHeight: 10 },
+      { name: 'Prambanan Temple', lat: -7.7522, lon: 110.4915, alt: 700, pitch: -25, heading: 270, buildingHeight: 24, groundElevation: 182 },
+      { name: 'Borobudur Temple', lat: -7.6080, lon: 110.2038, alt: 700, pitch: -30, heading: 0, buildingHeight: 18, groundElevation: 305 },
+    ],
+  },
+  surabaya: {
+    name: 'Surabaya',
+    groundElevation: 33,
+    viewBounds: { southwest: { lat: -7.351, lng: 112.592 }, northeast: { lat: -7.184, lng: 112.847 } },
+    pois: [
+      { name: 'Heroes Monument', lat: -7.2459, lon: 112.7378, alt: 400, pitch: -25, heading: 0, buildingHeight: 25 },
+      { name: 'Suramadu Bridge', lat: -7.1841, lon: 112.7804, alt: 2000, pitch: -25, heading: 45, buildingHeight: 40 },
+      { name: 'Al-Akbar Mosque', lat: -7.3363, lon: 112.7153, alt: 700, pitch: -28, heading: 0, buildingHeight: 40 },
+      { name: 'House of Sampoerna', lat: -7.2310, lon: 112.7341, alt: 350, pitch: -30, heading: 180, buildingHeight: 10 },
+      { name: 'Submarine Monument', lat: -7.2654, lon: 112.7503, alt: 350, pitch: -25, heading: 90, buildingHeight: 8 },
+    ],
+  },
+  bali: {
+    name: 'Bali',
+    groundElevation: 40,
+    viewBounds: { southwest: { lat: -8.85, lng: 115.05 }, northeast: { lat: -8.55, lng: 115.30 } },
+    pois: [
+      { name: 'Garuda Wisnu Kencana', lat: -8.8142, lon: 115.1667, alt: 800, pitch: -20, heading: 0, buildingHeight: 60, groundElevation: 176 },
+      { name: 'Tanah Lot Temple', lat: -8.6212, lon: 115.0869, alt: 450, pitch: -25, heading: 270, buildingHeight: 10 },
+      { name: 'Uluwatu Temple', lat: -8.8294, lon: 115.0843, alt: 600, pitch: -25, heading: 270, buildingHeight: 20 },
+      { name: 'Bajra Sandhi Monument', lat: -8.6718, lon: 115.2339, alt: 450, pitch: -28, heading: 0, buildingHeight: 20 },
+      { name: 'Kuta Beach', lat: -8.7182, lon: 115.1688, alt: 900, pitch: -30, heading: 270, buildingHeight: 2 },
+    ],
+  },
+  medan: {
+    name: 'Medan',
+    groundElevation: 10,
+    viewBounds: { southwest: { lat: 3.480, lng: 98.593 }, northeast: { lat: 3.801, lng: 98.747 } },
+    pois: [
+      { name: 'Maimun Palace', lat: 3.5752, lon: 98.6838, alt: 450, pitch: -28, heading: 0, buildingHeight: 12 },
+      { name: 'Tjong A Fie Mansion', lat: 3.5856, lon: 98.6806, alt: 350, pitch: -30, heading: 90, buildingHeight: 10 },
+      { name: 'Merdeka Square', lat: 3.5903, lon: 98.6787, alt: 700, pitch: -35, heading: 0, buildingHeight: 5 },
+      { name: 'Tirtanadi Water Tower', lat: 3.5822, lon: 98.6851, alt: 350, pitch: -22, heading: 0, buildingHeight: 20 },
+      { name: 'Pos Bloc Medan', lat: 3.5920, lon: 98.6774, alt: 350, pitch: -28, heading: 90, buildingHeight: 10 },
+    ],
+  },
   austin: {
     name: 'Austin',
     groundElevation: 150, // meters above WGS84 ellipsoid
@@ -280,7 +357,7 @@ export function flyToPresetLocation(viewer, locationId, options = {}) {
     heading: poi.heading || 0,
     buildingHeight: poi.buildingHeight || 30,
     buildingBounds: poi.buildingBounds || null,
-    groundElevation: city.groundElevation || 0,
+    groundElevation: poi.groundElevation ?? (city.groundElevation || 0),
     ...options,
   });
 }
@@ -299,7 +376,7 @@ export function flyToPOI(viewer, cityId, poiIndex, options = {}) {
     heading: poi.heading || 0,
     buildingHeight: poi.buildingHeight || 30,
     buildingBounds: poi.buildingBounds || null,
-    groundElevation: city.groundElevation || 0,
+    groundElevation: poi.groundElevation ?? (city.groundElevation || 0),
     ...options,
   });
 }
@@ -348,7 +425,12 @@ export const CANCELLED_SEARCH = Object.freeze({ cancelled: true });
  */
 export async function searchAndFlyTo(viewer, query, options = {}) {
   const apiKey = window.__GOOGLE_MAPS_API_KEY__ || import.meta.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) throw new Error('No Google Maps API key available for geocoding');
+  if (!apiKey) {
+    // No direct Google key: Cesium ion's Google-backed geocoder keeps search working
+    // and keeps Google 3D Tiles on a Google geocoder, as their terms require.
+    if (ionGeocodingToken()) return searchAndFlyToWithIon(viewer, query, options);
+    throw new Error('No Google Maps API key available for geocoding');
+  }
 
   const beforeFly = typeof options.beforeFly === 'function' ? options.beforeFly : null;
   const mayFly = () => beforeFly === null || beforeFly() !== false;
@@ -486,6 +568,218 @@ function placesViewportToBounds(vp) {
   return {
     southwest: { lat: low.latitude, lng: low.longitude },
     northeast: { lat: high.latitude, lng: high.longitude },
+  };
+}
+
+/**
+ * Cesium ion geocoding: the search path when the app has a Cesium ion token but
+ * no direct Google Maps key. Ion's Google provider keeps Photorealistic 3D Tiles
+ * on a Google geocoder, which Cesium warns is the only geocoder allowed with them.
+ *
+ * Ion returns a label and a bounding box but no place types, so framing follows
+ * the box size. Calibrated 2026-09-14 against ion's Google provider: landmarks and
+ * streets 0.4-1.2 km, a beach 7 km, cities 26-30 km, Bali 166 km, Indonesia 5,500 km.
+ */
+export const ION_PRECISE_SPAN_KM = 1.5;
+export const ION_AREA_SPAN_KM = 15;
+export const ION_REGION_SPAN_KM = 400;
+
+/**
+ * Ion's geocoder has no viewport bias, so a short name can resolve far away
+ * ("Monas" alone returned a village in Gorontalo). Among several results the one
+ * nearest the camera within this distance wins; otherwise ion's first result does.
+ */
+export const ION_VIEW_BIAS_KM = 500;
+
+/** Cesium World Terrain supplies ground height for close search framing. */
+const ION_WORLD_TERRAIN_ASSET_ID = 1;
+/** Close framing waits at most this long for a terrain height before flying. */
+const ION_GROUND_SAMPLE_TIMEOUT_MS = 2500;
+/**
+ * Building outlines come from public Overpass mirrors, which answered 504 and 429
+ * for up to a minute on 2026-09-14. Waiting their full 6 s held every landmark
+ * search, so the flight goes ahead after this long without an outline.
+ */
+const ION_BUILDING_BOUNDS_TIMEOUT_MS = 2000;
+let ionTerrainProviderPromise = null;
+
+function ionGeocodingToken() {
+  // Vite substitutes the configured token for this expression. Outside Vite
+  // (unit tests) import.meta.env is undefined, so the lookup throws.
+  try {
+    return String(import.meta.env.CESIUM_ION_TOKEN || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+function ionNavigationMode(spanKm) {
+  if (spanKm <= ION_PRECISE_SPAN_KM) return 'precise-place';
+  if (spanKm <= ION_AREA_SPAN_KM) return 'area-overview';
+  if (spanKm <= ION_REGION_SPAN_KM) return 'city-overview';
+  return 'region-overview';
+}
+
+/**
+ * Turn one Cesium GeocoderService result into a framing plan. Pure; exported for tests.
+ * @param {{displayName?: string, destination?: Cesium.Rectangle|Cesium.Cartesian3}|null} result
+ * @returns {null | {label: string|null, lat: number, lon: number, spanKm: number,
+ *   viewport: {southwest:{lat:number,lng:number}, northeast:{lat:number,lng:number}}|null,
+ *   navigationMode: string}}
+ */
+export function ionGeocodePlan(result) {
+  const destination = result?.destination;
+  const label = String(result?.displayName || '').trim() || null;
+  if (destination instanceof Cesium.Rectangle) {
+    const viewport = {
+      southwest: { lat: Cesium.Math.toDegrees(destination.south), lng: Cesium.Math.toDegrees(destination.west) },
+      northeast: { lat: Cesium.Math.toDegrees(destination.north), lng: Cesium.Math.toDegrees(destination.east) },
+    };
+    const metrics = viewportMetrics(viewport);
+    if (!metrics) return null;
+    return {
+      label,
+      lat: metrics.centerLat,
+      lon: metrics.centerLng,
+      viewport,
+      spanKm: metrics.spanKm,
+      navigationMode: ionNavigationMode(metrics.spanKm),
+    };
+  }
+  if (destination instanceof Cesium.Cartesian3) {
+    const carto = Cesium.Cartographic.fromCartesian(destination);
+    if (!carto) return null;
+    return {
+      label,
+      lat: Cesium.Math.toDegrees(carto.latitude),
+      lon: Cesium.Math.toDegrees(carto.longitude),
+      viewport: null,
+      spanKm: 0,
+      navigationMode: 'precise-place',
+    };
+  }
+  return null;
+}
+
+/**
+ * Choose among ion results: the nearest to the view within ION_VIEW_BIAS_KM, else
+ * ion's first. Pure; exported for tests.
+ * @param {Array<object>} results GeocoderService results.
+ * @param {{lat:number, lon:number}|null} reference Current view position in degrees.
+ */
+export function pickIonGeocodeResult(results, reference) {
+  const plans = (Array.isArray(results) ? results : []).map((result) => ionGeocodePlan(result)).filter(Boolean);
+  if (!plans.length) return null;
+  if (!Number.isFinite(reference?.lat) || !Number.isFinite(reference?.lon)) return plans[0];
+  let nearest = null;
+  for (const plan of plans) {
+    const km = greatCircleKm(reference.lat, reference.lon, plan.lat, plan.lon);
+    if (km <= ION_VIEW_BIAS_KM && (!nearest || km < nearest.km)) nearest = { plan, km };
+  }
+  return nearest ? nearest.plan : plans[0];
+}
+
+/**
+ * Ellipsoidal ground height from Cesium World Terrain, or null when it cannot be
+ * sampled. Google 3D Tiles leave globe terrain empty, so without this a close search
+ * flight aims at 0 m: inside the hill in a city like Bandung (~740 m).
+ */
+async function sampleIonGroundHeight(lat, lon) {
+  try {
+    ionTerrainProviderPromise ??= Cesium.CesiumTerrainProvider.fromIonAssetId(ION_WORLD_TERRAIN_ASSET_ID);
+    const provider = await ionTerrainProviderPromise;
+    const [sample] = await Cesium.sampleTerrainMostDetailed(provider, [Cesium.Cartographic.fromDegrees(lon, lat)]);
+    return Number.isFinite(sample?.height) ? sample.height : null;
+  } catch {
+    ionTerrainProviderPromise = null;
+    return null;
+  }
+}
+
+function resolveWithin(promise, ms) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((resolve) => { timer = setTimeout(() => resolve(null), ms); }),
+  ]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * Geocode through Cesium ion and fly there, mirroring searchAndFlyTo's framing:
+ * cities and regions frame their box, areas get a proportional oblique view, and
+ * landmarks use close building framing above sampled terrain.
+ * @param {Cesium.Viewer} viewer
+ * @param {string} query
+ * @param {object} [options] Same options as searchAndFlyTo.
+ * @param {{geocoder?: {geocode: Function}, sampleGround?: Function}} [deps] Test seams.
+ * @returns {Promise<object|null>}
+ */
+export async function searchAndFlyToWithIon(viewer, query, options = {}, deps = {}) {
+  const beforeFly = typeof options.beforeFly === 'function' ? options.beforeFly : null;
+  const mayFly = () => beforeFly === null || beforeFly() !== false;
+  const geocoder = deps.geocoder || new Cesium.IonGeocoderService({
+    scene: viewer.scene,
+    accessToken: ionGeocodingToken() || undefined,
+    geocodeProviderType: Cesium.IonGeocodeProviderType.GOOGLE,
+  });
+  const sampleGround = deps.sampleGround || sampleIonGroundHeight;
+
+  const camera = viewer.camera?.positionCartographic;
+  const reference = camera
+    ? { lat: Cesium.Math.toDegrees(camera.latitude), lon: Cesium.Math.toDegrees(camera.longitude) }
+    : null;
+  const plan = pickIonGeocodeResult(await geocoder.geocode(query), reference);
+  if (!plan) return null;
+
+  const label = plan.label || query;
+  const requestedRange = finitePositive(options.range);
+  const duration = finitePositive(options.duration) || 3.0;
+  const framesViewport = plan.navigationMode === 'city-overview'
+    || plan.navigationMode === 'region-overview'
+    || options.viewMode === 'overview';
+
+  if (!requestedRange && !options.forceClose && framesViewport && plan.viewport) {
+    const flight = flyToViewportBounds(viewer, plan.viewport, {
+      duration,
+      navigationMode: plan.navigationMode,
+      beforeFly: mayFly,
+      onStart: options.onStart,
+      onComplete: options.onComplete,
+      onCancel: options.onCancel,
+    });
+    if (flight === CANCELLED_SEARCH) return CANCELLED_SEARCH;
+    if (flight) return { label, navigationMode: plan.navigationMode, rangeM: null };
+  }
+
+  const isPrecise = plan.navigationMode === 'precise-place';
+  const [buildingBounds, groundHeight] = await Promise.all([
+    isPrecise && !requestedRange
+      ? resolveWithin(resolveBuildingBounds(plan.lat, plan.lon, query), ION_BUILDING_BOUNDS_TIMEOUT_MS)
+      : null,
+    resolveWithin(sampleGround(plan.lat, plan.lon), ION_GROUND_SAMPLE_TIMEOUT_MS),
+  ]);
+  const range = requestedRange || (plan.navigationMode === 'area-overview'
+    ? Math.min(8000, Math.max(900, plan.spanKm * 600))
+    : defaultRangeForNavigationMode(plan.navigationMode));
+  if (!mayFly()) return CANCELLED_SEARCH;
+  const flight = flyToLandmark(viewer, buildingBounds?.lat ?? plan.lat, buildingBounds?.lon ?? plan.lon, {
+    range,
+    pitch: isPrecise ? buildingPitch(buildingBounds) : -35,
+    heading: 30,
+    buildingHeight: isPrecise ? 30 : 0,
+    buildingBounds,
+    groundElevation: Number.isFinite(groundHeight) ? groundHeight : 0,
+    duration,
+    onStart: options.onStart,
+    onComplete: options.onComplete,
+    onCancel: options.onCancel,
+  });
+  return {
+    label,
+    navigationMode: requestedRange
+      ? 'explicit-range'
+      : (options.forceClose ? plan.navigationMode.replace('-overview', '-close') : plan.navigationMode),
+    rangeM: Math.round(flight.range),
   };
 }
 

@@ -1,12 +1,16 @@
 <div align="center">
 
-# 🌐 God's Eye View
+# 🌐 CAKRAWALA
+
+**C**itra **A**ngkasa · **K**ewaspadaan **R**uang **A**ktual · **W**ilayah, **A**rmada, **L**alu-lintas & **A**lam
 
 ### A spy-satellite simulator in your browser — then you realize the sources are public and the data is real.
 
 Photorealistic 3D globe. Live aircraft, ships, satellites, earthquakes, traffic, and public cameras. Hands-free voice control powered by a realtime AI agent.
 
 *No place left behind.*
+
+Built on the open-source [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view) by Bilawal Sidhu and Sameh Khamis.
 
 ![Orbital HUD, a tracked live globe, FLIR terrain — then OPEN SOURCED](docs/media/hero-open-source-reveal.gif)
 
@@ -40,9 +44,9 @@ Photorealistic 3D globe. Live aircraft, ships, satellites, earthquakes, traffic,
 
 ## 🌍 Why This Exists
 
-God's Eye View brings public signals into one explorable globe. Track the world live. Talk to it. Break it. Extend it.
+CAKRAWALA brings public signals into one explorable globe. Track the world live. Talk to it. Break it. Extend it.
 
-Flight transponders, ship beacons, orbital elements, seismographs, and public cameras already tell us a lot about the world. God's Eye View puts them in the same place, so you can move between a global picture and an individual aircraft, ship, or street. It runs locally in your browser, with source code you can inspect and extend.
+Flight transponders, ship beacons, orbital elements, seismographs, and public cameras already tell us a lot about the world. CAKRAWALA puts them in the same place, so you can move between a global picture and an individual aircraft, ship, or street. It runs locally in your browser, with source code you can inspect and extend.
 
 > Half the magic is that it looks like a forbidden cockpit. The other half is that every line of code is inspectable.
 
@@ -159,7 +163,7 @@ reopens the same panel.
 
 Do not enter credentials in Pinokio 8.0.40's native **Configure** panel: that
 release does not save this nested app file correctly, and it logs submitted
-values. Use **POWER UP → Provider Settings** inside GEV instead. The Pinokio
+values. Use **POWER UP → Provider Settings** inside CAKRAWALA instead. The Pinokio
 8.2 announcement fixes installation; it does not establish that this separate
 Configure issue is resolved. On macOS, the Keychain via
 `./scripts/dev-fresh.sh` remains the stronger storage option.
@@ -225,7 +229,7 @@ The cockpit even carries its own briefing strip: nearby live signals, regional h
 
 > Voice needs an **OpenAI key**. Without one the entire app still runs — the mic button just reports voice is unavailable. The same key drives the **AI HUD summary**: a terse, five-word intelligence-style readout of the current view that regenerates as you move.
 
-Click **GEV MIC**, grant the microphone, and just talk. This is more than a voice-controlled remote:
+Click **MIC**, grant the microphone, and just talk. This is more than a voice-controlled remote:
 
 - **🧠 It knows what it's looking at.** The agent pulls live scene context before answering — including coordinates, street names, active layers, and view scale. Ask *"what city is this?"* mid-flight and it knows.
 - **🎯 Entity Q&A.** Click any plane, ship, or datacenter and ask *"what's this?"* It answers using the object's live telemetry.
@@ -436,7 +440,7 @@ Honest numbers, roughly, as of mid-2026 — always check the provider pricing pa
 |---|---|
 | **🟢 Most layers** | **$0, no signup.** OpenSky anon, USGS, CelesTrak, adsb.lol, city CCTV, Radio Browser, GBFS, Launch Library 2, bundled datasets. |
 | **🟡 The free-key tier** | **$0 with a signup.** AISStream, FIRMS, TomTom, OpenSky, plus Cesium ion for eligible personal/non-commercial use. Provider quotas and eligibility still apply. |
-| **🗺️ Google 3D tiles** | **Free through an eligible Cesium ion Community account within its quota; metered through a direct Google key.** Use the direct route for GEV place search or commercial deployment, verify current provider terms, and set budget alerts where billing is enabled. |
+| **🗺️ Google 3D tiles** | **Free through an eligible Cesium ion Community account within its quota; metered through a direct Google key.** Use the direct route for CAKRAWALA place search or commercial deployment, verify current provider terms, and set budget alerts where billing is enabled. |
 | **🔴 OpenAI voice** | **The one that costs real money — so the app meters it for you.** Realtime audio runs a few cents per active minute; an evening of heavy use is single-digit dollars. A live session-spend readout sits next to the mic, with an STD/MINI model toggle, a $2 warning, and a **$5 hard cap that ends the session**. The voice context window is kept deliberately short too. |
 
 Google's direct 3D route is surprisingly generous: the first 1,000 Photorealistic
@@ -466,7 +470,7 @@ a separately reviewed authentication proxy if remote access is required.
 
 ## 📋 Responsible & Open
 
-God's Eye View runs on **public data, clear sources, and local-first execution.** No secrets, no private datasets, no mystery scraping — anything involving a private key is brokered server-side. It has the visual grammar of a classified ops room, built entirely from open signals and inspectable code.
+CAKRAWALA runs on **public data, clear sources, and local-first execution.** No secrets, no private datasets, no mystery scraping — anything involving a private key is brokered server-side. It has the visual grammar of a classified ops room, built entirely from open signals and inspectable code.
 
 **The line.** This project models **events, assets, infrastructure, and systems** — aircraft, vessels, satellites, fires, cameras, cities. It does not build features for named-person search, face recognition, or tracking individuals, and pull requests that cross that line won't be merged. People are not a query type here.
 
@@ -479,7 +483,7 @@ God's Eye View runs on **public data, clear sources, and local-first execution.*
 <sub>Media note: the capture GIFs on this page show Google Photorealistic 3D Tiles and live data layers, used promotionally with in-frame attribution; they aren't licensed for standalone reuse. See [media provenance and permissions](docs/media/README.md); full source terms in [DATA_SOURCES.md](DATA_SOURCES.md).</sub>
 
 > [!IMPORTANT]
-> God's Eye View is an exploratory visualization of public and third-party data.
+> CAKRAWALA is an exploratory visualization of public and third-party data.
 > Data may be delayed, incomplete, modeled, inferred, or wrong. Do not use it
 > for flight or maritime navigation, emergency response, medical or health
 > decisions, investment decisions, or other safety-critical or operational
@@ -505,6 +509,6 @@ One heads-up from the inside: build in this space for a week and you learn that 
 
 ▶️ [Watch the God's Eye View series](https://youtube.com/playlist?list=PL6qSg2I-7_koPbDnSMo0QeeHX_RknA2uv&si=nBGYMoHWQw41v93Q) · 📬 [Map the World](https://maptheworld.ai/) — the newsletter behind the project
 
-**🌐 God's Eye View. No place left behind.**
+**🌐 CAKRAWALA. No place left behind.**
 
 </div>

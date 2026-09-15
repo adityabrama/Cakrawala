@@ -1,5 +1,5 @@
 /**
- * Vite configuration for God's Eye View — a cinematic geospatial app.
+ * Vite configuration for CAKRAWALA — a cinematic geospatial app.
  *
  * Registers the dev-server proxy middlewares that bypass CORS and add
  * caching/auth for upstream APIs:
@@ -56,6 +56,8 @@ import { normalizeAdsbLolPointResponse } from './src/data/adsbLolFallback.js';
 import { createAisStreamAdapter, isRecognizedAisEnvelope } from './src/data/aisStreamAdapter.js';
 import { parseSilenceTimeoutEnv } from './src/data/aisWatchdog.js';
 import { keylessHudSummaryResponse } from './src/hudSummaryResponse.js';
+import { INDONESIA_CCTV_PACKS, INTERNATIONAL_CCTV_PACKS, createSingaporeSnapshotResolver, loadCctvPacks } from './src/data/cctvPacks.js';
+import { HLS_PLAYLIST_CONTENT_TYPE, decodeHlsRef, encodeHlsRef, isAllowedHlsTarget, looksLikeHlsPlaylist, rewriteHlsPlaylist } from './src/data/cctvHls.js';
 import { parseEnv as parseDotenvText } from 'node:util';
 import { readEnvironmentSource as readPinokioEnvironmentSource } from './scripts/pinokio-environment.mjs';
 import {
@@ -2605,7 +2607,7 @@ export async function fetchOverpassPayload(body, maxResponseBytes = OVERPASS_MAX
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'gods-eye-view-overpass-proxy/1.0',
+          'User-Agent': 'CAKRAWALA-overpass-proxy/1.0',
         },
         body,
         signal: controller.signal,
@@ -3525,8 +3527,11 @@ const DEFAULT_CCTV_SOURCE_FILE = 'config/cctv_sources.austin.json';
 const DEFAULT_AUSTIN_ROWS_URL = 'https://data.austintexas.gov/api/views/b4k4-adkb/rows.json?accessType=DOWNLOAD';
 /** Default cap on Austin cameras after distance-based prioritization. */
 const DEFAULT_AUSTIN_MAX_SOURCES = 250;
-/** Global cap on total CCTV sources served by the proxy. */
-const DEFAULT_CCTV_MAX_SOURCES = 900;
+/** Global cap on total CCTV sources served by the proxy. Indonesian packs load
+ * first, so the cap trims international snapshot feeds before them. */
+const DEFAULT_CCTV_MAX_SOURCES = 3200;
+/** Hard ceiling for CCTV_MAX_SOURCES. */
+const CCTV_MAX_SOURCES_CEILING = 4000;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
 const AUSTIN_DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
 /** Caltrans CCTV: one JSON feed per district, identical schema statewide. */
@@ -4205,6 +4210,10 @@ function normalizeSourceItem(item) {
     // badge can distinguish them from raw automated priors (e.g. Austin Open
     // Data, which never sets this field). Passed through as-is to the client.
     poseSource: item.poseSource === 'curated' ? 'curated' : undefined,
+    // Feeds whose snapshot URL rotates (Singapore LTA) resolve it at frame time.
+    snapshotResolver: item.snapshotResolver === 'sg-lta' ? 'sg-lta' : undefined,
+    // Referer some city stream servers require before serving HLS (hotlink protection).
+    streamReferer: typeof item.streamReferer === 'string' && /^https?:\/\//i.test(item.streamReferer) ? item.streamReferer : undefined,
   };
 }
 
@@ -4248,22 +4257,32 @@ async function refreshCctvSources() {
   // Austin-only fetch, now governing all three. Each pack fails independently.
   const needsLiveSources = forceAustin || ((fromFile.length + fromEnv.length) === 0 && preferAustin);
   const tflEnabled = String(process.env.CCTV_TFL_ENABLED || '1').trim() !== '0';
+  const indonesiaEnabled = String(process.env.CCTV_INDONESIA_ENABLED || '1').trim() !== '0';
+  const internationalEnabled = String(process.env.CCTV_INTERNATIONAL_ENABLED || '1').trim() !== '0';
 
   let fromAustin = [];
   let fromCaltrans = [];
   let fromTfl = [];
+  let fromIndonesia = [];
+  let fromInternational = [];
   if (needsLiveSources) {
-    const [austinResult, caltransResult, tflResult] = await Promise.allSettled([
+    const [austinResult, caltransResult, tflResult, indonesiaResult, internationalResult] = await Promise.allSettled([
       loadAustinSourcesFromOpenData(),
       loadCaltransSourcesFromOpenData(),
       tflEnabled ? loadTflSourcesFromOpenData() : Promise.resolve([]),
+      indonesiaEnabled ? loadCctvPacks(INDONESIA_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS }) : Promise.resolve([]),
+      internationalEnabled ? loadCctvPacks(INTERNATIONAL_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS }) : Promise.resolve([]),
     ]);
     fromAustin = austinResult.status === 'fulfilled' ? austinResult.value : [];
     fromCaltrans = caltransResult.status === 'fulfilled' ? caltransResult.value : [];
     fromTfl = tflResult.status === 'fulfilled' ? tflResult.value : [];
+    fromIndonesia = indonesiaResult.status === 'fulfilled' ? indonesiaResult.value : [];
+    fromInternational = internationalResult.status === 'fulfilled' ? internationalResult.value : [];
   }
   // Live sources first so file/env overrides win on duplicate IDs (Map last-write).
-  const merged = [...fromAustin, ...fromCaltrans, ...fromTfl, ...fromFile, ...fromEnv];
+  // Indonesia leads so the global cap can never trim it; international snapshot
+  // feeds trail the original packs.
+  const merged = [...fromIndonesia, ...fromAustin, ...fromCaltrans, ...fromTfl, ...fromInternational, ...fromFile, ...fromEnv];
 
   // Deduplicate by camera ID (last-write wins because of Map.set)
   const byId = new Map();
@@ -4276,7 +4295,7 @@ async function refreshCctvSources() {
 
   const mergedSources = Array.from(byId.values());
   const maxRaw = Number(process.env.CCTV_MAX_SOURCES || DEFAULT_CCTV_MAX_SOURCES);
-  const maxCount = Number.isFinite(maxRaw) ? Math.max(8, Math.min(1200, Math.floor(maxRaw))) : DEFAULT_CCTV_MAX_SOURCES;
+  const maxCount = Number.isFinite(maxRaw) ? Math.max(8, Math.min(CCTV_MAX_SOURCES_CEILING, Math.floor(maxRaw))) : DEFAULT_CCTV_MAX_SOURCES;
   if (mergedSources.length > maxCount) {
     console.warn(`[CCTV] source catalog ${mergedSources.length} exceeds cap ${maxCount}; keeping the first ${maxCount} (raise CCTV_MAX_SOURCES or lower a per-pack cap to change which).`);
   }
@@ -4424,6 +4443,99 @@ async function readCappedResponseText(upstream, maxBytes) {
   return { tooLarge: false, text };
 }
 
+/** HLS playlists are small text files; anything larger is not a playlist. */
+const CCTV_HLS_PLAYLIST_MAX_BYTES = 1024 * 1024;
+/** Bounds one playlist or segment fetch, including a stalled body. */
+const CCTV_HLS_FETCH_TIMEOUT_MS = 20 * 1000;
+
+/**
+ * Serve a CCTV HLS stream through the proxy.
+ *
+ *   GET /api/cctv/hls/:id/playlist.m3u8  the camera's registered playlist
+ *   GET /api/cctv/hls/:id/r/:ref         a variant, segment, key or map it references
+ *
+ * Playlists are rewritten so every URI routes back here. Every upstream URL,
+ * including redirect targets, must stay on the camera's registered host or a
+ * sibling on the same site, and never a private address (SSRF guard).
+ */
+async function handleCctvHlsRequest(res, url, sourceById, setHealth) {
+  const parts = url.pathname.split('/').filter(Boolean);
+  const cameraId = decodeURIComponent(parts[1] || '');
+  const source = sourceById.get(cameraId);
+  const sendError = (status, error) => {
+    res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ error }));
+  };
+  const registeredUrl = typeof source?.url === 'string' ? source.url : '';
+  if (!source || normalizeFeedType(source.feedType) !== 'hls' || !/^https?:\/\//i.test(registeredUrl)) {
+    sendError(404, 'No HLS stream registered for this camera');
+    return;
+  }
+
+  let target = null;
+  if (parts.length === 3 && parts[2] === 'playlist.m3u8') target = registeredUrl;
+  else if (parts.length === 4 && parts[2] === 'r') target = decodeHlsRef(parts[3]);
+  if (!target || !isAllowedHlsTarget(target, registeredUrl)) {
+    sendError(target ? 403 : 404, target ? 'Stream URL is outside the camera host' : 'Unknown HLS path');
+    return;
+  }
+
+  const isRoot = target === registeredUrl;
+  const provider = source.provider || 'Configured source';
+  let upstream;
+  try {
+    upstream = await fetch(target, {
+      headers: {
+        'User-Agent': 'CAKRAWALA-cctv-proxy/1.0',
+        ...(source.streamReferer ? { Referer: source.streamReferer } : {}),
+      },
+      signal: AbortSignal.timeout(CCTV_HLS_FETCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (isRoot) setHealth(cameraId, { status: 'degraded', sourceKind: 'upstream', label: provider, message: error?.message || 'Stream fetch failed' });
+    sendError(502, 'Stream fetch failed');
+    return;
+  }
+
+  const finalUrl = upstream.url || target;
+  if (!isAllowedHlsTarget(finalUrl, registeredUrl)) {
+    try { await upstream.body?.cancel(); } catch { /* no-op */ }
+    sendError(403, 'Stream redirected outside the camera host');
+    return;
+  }
+  if (!upstream.ok) {
+    if (isRoot) setHealth(cameraId, { status: 'degraded', sourceKind: 'upstream', label: provider, message: `Upstream HTTP ${upstream.status}` });
+    try { await upstream.body?.cancel(); } catch { /* no-op */ }
+    sendError(upstream.status === 404 ? 404 : 502, `Upstream returned ${upstream.status}`);
+    return;
+  }
+
+  const contentType = upstream.headers.get('content-type') || '';
+  const playlistPath = /\.m3u8$/i.test(new URL(finalUrl).pathname);
+  if (contentType.toLowerCase().includes('mpegurl') || playlistPath) {
+    let text;
+    try {
+      text = await readResponseTextCapped(upstream, CCTV_HLS_PLAYLIST_MAX_BYTES);
+    } catch {
+      sendError(502, 'Upstream playlist too large or unreadable');
+      return;
+    }
+    if (!looksLikeHlsPlaylist(contentType, text)) {
+      if (isRoot) setHealth(cameraId, { status: 'degraded', sourceKind: 'upstream', label: provider, message: 'Upstream did not return an HLS playlist' });
+      sendError(502, 'Upstream did not return an HLS playlist');
+      return;
+    }
+    const refBase = `/api/cctv/hls/${encodeURIComponent(cameraId)}/r/`;
+    const body = rewriteHlsPlaylist(text, finalUrl, (absolute) => refBase + encodeHlsRef(absolute));
+    if (isRoot) setHealth(cameraId, { status: 'ok', sourceKind: 'live', label: provider, message: 'Live stream connected' });
+    res.writeHead(200, { 'Content-Type': HLS_PLAYLIST_CONTENT_TYPE, 'Cache-Control': 'no-store', 'X-CCTV-Source': 'live-hls' });
+    res.end(body);
+    return;
+  }
+
+  await proxyMediaResponse(res, upstream, { sourceHeader: 'live-hls-segment' });
+}
+
 async function proxyMediaResponse(res, upstream, { sourceHeader = 'upstream' } = {}) {
   const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
   const cacheControl = upstream.headers.get('cache-control') || 'no-store';
@@ -4492,18 +4604,36 @@ export async function fetchCctvImageFromUpstream(url, {
       headers: { 'User-Agent': 'gods-eye-view-cctv-proxy/1.0' },
       signal: controller.signal,
     });
-    const contentType = upstream.headers.get('content-type') || '';
-    if (!upstream.ok || !contentType.startsWith('image/')) return null;
-    return {
-      ok: true,
-      body: Buffer.from(await upstream.arrayBuffer()),
-      contentType,
-    };
+    const declaredType = upstream.headers.get('content-type') || '';
+    if (!upstream.ok) return null;
+    const declaredImage = declaredType.startsWith('image/');
+    // Some open-data image hosts (Singapore LTA) label JPEGs as generic binary.
+    // Those are accepted only when the bytes really are an image.
+    const genericBinary = /^(application\/octet-stream|binary\/octet-stream)?$/i.test(declaredType.split(';')[0].trim());
+    if (!declaredImage && !genericBinary) return null;
+    const body = Buffer.from(await upstream.arrayBuffer());
+    const contentType = declaredImage ? declaredType : sniffImageContentType(body);
+    if (!contentType) return null;
+    return { ok: true, body, contentType };
   } catch {
     return null;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+/**
+ * Identify an image from its leading bytes.
+ * @param {Buffer} body
+ * @returns {string} Image content type, or '' when the bytes are not a known image.
+ */
+function sniffImageContentType(body) {
+  if (!body || body.length < 12) return '';
+  if (body[0] === 0xff && body[1] === 0xd8 && body[2] === 0xff) return 'image/jpeg';
+  if (body[0] === 0x89 && body[1] === 0x50 && body[2] === 0x4e && body[3] === 0x47) return 'image/png';
+  if (body.toString('latin1', 0, 4) === 'RIFF' && body.toString('latin1', 8, 12) === 'WEBP') return 'image/webp';
+  if (body.toString('latin1', 0, 4) === 'GIF8') return 'image/gif';
+  return '';
 }
 
 /**
@@ -4523,9 +4653,9 @@ function cctvProxy() {
   /** @type {Map<string,{id:string,status:string,sourceKind:string,label:string,message:string,updatedAt:number}>} */
   const health = new Map();
   /** Cap on health map entries to prevent unbounded growth. Sized to cover the
-   * full served catalog (CCTV_MAX_SOURCES hard-bounds at 1200) so health/status
+   * full served catalog (CCTV_MAX_SOURCES hard-bounds at CCTV_MAX_SOURCES_CEILING) so health/status
    * observability isn't silently evicted for a default 800-camera catalog. */
-  const HEALTH_MAX_ENTRIES = 1200;
+  const HEALTH_MAX_ENTRIES = CCTV_MAX_SOURCES_CEILING;
 
   /** Update the health entry for a camera, evicting the oldest entry if at capacity. */
   const setHealth = (cameraId, patch) => {
@@ -4554,9 +4684,11 @@ function cctvProxy() {
     return {
       id: cameraId,
       feedType,
-      mediaUrl: isVideoFeedType(feedType)
-        ? `/api/cctv/media/${encodeURIComponent(cameraId)}`
-        : null,
+      mediaUrl: feedType === 'hls'
+        ? `/api/cctv/hls/${encodeURIComponent(cameraId)}/playlist.m3u8`
+        : isVideoFeedType(feedType)
+          ? `/api/cctv/media/${encodeURIComponent(cameraId)}`
+          : null,
       frameUrl: `/api/cctv/frame/${encodeURIComponent(cameraId)}`,
       provider: source?.provider || '',
       sourceKind: source?.sourceKind || (source?.url ? 'configured' : 'fallback'),
@@ -4594,6 +4726,8 @@ function cctvProxy() {
       return null;
     }
   };
+
+  const resolveSingaporeSnapshot = createSingaporeSnapshotResolver();
 
   return {
     name: 'cctv-proxy',
@@ -4644,6 +4778,11 @@ function cctvProxy() {
             const payload = buildStreamPayload(source, cameraId);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
             res.end(JSON.stringify(payload));
+            return;
+          }
+
+          if (url.pathname.startsWith('/hls/')) {
+            await handleCctvHlsRequest(res, url, sourceById, setHealth);
             return;
           }
 
@@ -4740,7 +4879,10 @@ function cctvProxy() {
             source?.snapshotUrl
             || (!isVideoFeedType(normalizeFeedType(source?.feedType)) ? source?.url : '');
 
-          const upstreamImage = await fetchCctvImageFromUpstream(upstreamCandidate);
+          const resolvedSnapshot = source?.snapshotResolver === 'sg-lta'
+            ? await resolveSingaporeSnapshot(cameraId).catch(() => null)
+            : null;
+          const upstreamImage = await fetchCctvImageFromUpstream(resolvedSnapshot || upstreamCandidate);
           if (upstreamImage?.ok) {
             setHealth(cameraId, {
               status: 'ok',
@@ -5101,7 +5243,7 @@ export function openAiRealtimeProxy() {
           body: JSON.stringify({
             model: process.env.OPENAI_HUD_SUMMARY_MODEL || OPENAI_HUD_SUMMARY_MODEL_DEFAULT,
             instructions: [
-              "Write one concise intelligence-HUD summary for God's Eye View.",
+              "Write one concise intelligence-HUD summary for CAKRAWALA.",
               'Use only the supplied place, street, nearby-place, and enabled-layer text labels.',
               'Prefer the clearest named place and include a relevant enabled layer only when useful.',
               'Do not infer from coordinates or invent a place.',
@@ -5225,11 +5367,11 @@ export function openAiRealtimeProxy() {
             output: { voice },
           },
           instructions: [
-            "You are GEV Voice Control, a concise voice controller for a Cesium geospatial app called God's Eye View.",
+            "You are CAKRAWALA Voice Control, a concise voice controller for a Cesium geospatial app called CAKRAWALA.",
             'Have a natural spoken conversation with the user while the mic session is active.',
-            'Do not require a wake phrase. Treat direct commands like "zoom into London" or "open datacenters" as GEV control requests.',
+            'Do not require a wake phrase. Treat direct commands like "zoom into London" or "open datacenters" as CAKRAWALA control requests.',
             'Only control the app by calling the provided tools. Never invent tool names or arguments.',
-            'Call tools only for clear GEV control, navigation, visual-style, layer, or app-state requests. For ordinary conversation, answer normally without tools.',
+            'Call tools only for clear CAKRAWALA control, navigation, visual-style, layer, or app-state requests. For ordinary conversation, answer normally without tools.',
             'For requests to open, show, reveal, or focus a menu/panel, call set_panel_open or show_data_layers_menu. "Open Context" means only set_panel_open{panelId:"global-context-panel",open:true}; it does not activate a Context sub-mode. "Open Contacts" means set_context_mode{mode:"contacts"}; that action expands the parent Context panel before activating Contacts.',
             'For requests like "show me the datacenter layers", open the data layers menu and focus the matching layer row; do not enable the layer unless the user asks to turn it on.',
             'For questions like "what am I looking at?", "what is in view?", "what is this?", "that selected thing", nearby datacenter, dam, cable, ship, or current view contents, call get_entity_context first, then answer from the returned scene/entity context.',
@@ -5277,7 +5419,7 @@ export function openAiRealtimeProxy() {
             'Confirmations echo the RESULTING state, never the request: "HUD operator layout", "Density twenty-five percent", "Bing aerial imagery", "Tracking UAL428", "Framed fourteen aircraft". On ok=false, state the failure plainly: "Nothing matched UAL999", "No ships within 120 kilometers". Never claim an action without ok=true in the tool result.',
             'For destination requests such as "take me to Italy", "go to NYC", or "show me the Eiffel Tower", call fly_to_location. Prefer known city IDs when available; otherwise pass the plain place query.',
             'Navigation-only requests ("take me to X", "go to X", "fly to X") are NOT descriptions: call fly_to_location alone and do NOT also call annotate_map, unless the user explicitly asks to mark the place or you go on to explain specific places there. Never drop a point pin on a region-scale natural feature (a mountain range, desert, sea, or forest) — a single point in the middle of the Rockies is meaningless. If the user explicitly asks to mark such a region, prefer type=area.',
-            'For country and city destinations, omit rangeM so GEV frames the whole country or city in view. For landmarks and buildings, omit rangeM so GEV chooses a close landmark view.',
+            'For country and city destinations, omit rangeM so CAKRAWALA frames the whole country or city in view. For landmarks and buildings, omit rangeM so CAKRAWALA chooses a close landmark view.',
             'Only supply rangeM when the user asks for a particular numeric height, distance, closer view, or wider view.',
             'For relative requests such as "zoom out a little", "pull back", "zoom in more", or "get closer", always call adjust_camera_zoom. But "globe view", "whole earth", "the whole planet", or "zoom all the way out" is an ABSOLUTE framing: call zoom_to_globe once instead — repeated adjust_camera_zoom calls can never reach the globe. Never claim the camera moved without the tool returning ok=true.',
             'Keep spoken confirmations short, e.g. "Opening datacenters" or "Flying to London".',
@@ -7768,6 +7910,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: env.HOST || 'localhost',
       port: parseInt(env.PORT, 10) || 4173,
+      // Pre-transform the client module graph while the server boots, so the
+      // first page load does not wait on ~200 on-demand module transforms.
+      // Measured 2026-09-14 on a fresh server: the loading screen cleared in
+      // ~2.7 s instead of ~4.9 s, and DOMContentLoaded fell from ~2.8 s to ~0.75 s.
+      warmup: {
+        clientFiles: ['./src/main.js'],
+      },
       // When binding to all interfaces, allow any host; otherwise restrict to local names
       allowedHosts: (env.HOST === '0.0.0.0' || env.HOST === '::')
         ? true
@@ -7792,6 +7941,11 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.GOOGLE_MAPS_API_KEY': JSON.stringify(env.GOOGLE_MAPS_API_KEY),
       'import.meta.env.CESIUM_ION_TOKEN': JSON.stringify(env.CESIUM_ION_TOKEN),
+    },
+    // hls.js loads lazily when the first HLS camera opens; pre-bundling it keeps
+    // that first dynamic import from triggering a dev-server dependency reload.
+    optimizeDeps: {
+      include: ['hls.js'],
     },
     build: {
       // The Cesium engine bundle is inherently large; raise the warning ceiling

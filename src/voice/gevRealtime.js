@@ -982,7 +982,7 @@ export class GevRealtimeController {
 
   sendTextCommand(text) {
     if (!this.dc || this.dc.readyState !== 'open') {
-      throw new Error('GEV voice is not connected');
+      throw new Error('CAKRAWALA voice is not connected');
     }
     const cleanText = String(text || '').trim();
     if (!cleanText) return;
@@ -1347,7 +1347,7 @@ export class GevRealtimeController {
           : null;
         result = {
           ok: false,
-          error: error?.message || 'GEV command failed',
+          error: error?.message || 'CAKRAWALA command failed',
           tool: call.name,
           ...(isRadioFeatureCall ? readLayerLifecycleSummary(this.dataManager, 'radio', {
             fallbackEnabled: authoritativeRadioState?.enabled,
@@ -1479,7 +1479,7 @@ export class GevRealtimeController {
         content: [
           {
             type: 'input_text',
-            text: "Current God's Eye View viewport screenshot. Read any clearly visible street, building, and place labels in the image and combine them with the structured nearbyPlaces, streetLabels, and scene context. Do not invent labels that are not legible.",
+            text: "Current CAKRAWALA viewport screenshot. Read any clearly visible street, building, and place labels in the image and combine them with the structured nearbyPlaces, streetLabels, and scene context. Do not invent labels that are not legible.",
           },
           {
             type: 'input_image',
@@ -2101,7 +2101,7 @@ function responseInstructionForToolResult(result) {
     return 'Briefly confirm the completed Radio action, then say that Radio remains stopped as requested. Do not say the request was cancelled or that Radio is playing.';
   }
   if (result?.action === 'control_radio' && result.radioPlaybackRequested) {
-    return 'Briefly confirm any other completed GEV actions, then say “Turning on the radio.” Do not claim Radio is already playing.';
+    return 'Briefly confirm any other completed CAKRAWALA actions, then say “Turning on the radio.” Do not claim Radio is already playing.';
   }
   if (result?.action === 'get_entity_context') {
     const selectedLayerId = result.selected?.layerId;
@@ -2123,7 +2123,7 @@ function responseInstructionForToolResult(result) {
       aircraftRules.push('Never infer operator, type, or route from the callsign.');
     }
     return [
-      'Answer the user naturally using the returned GEV entity context.',
+      'Answer the user naturally using the returned CAKRAWALA entity context.',
       'If selected context is present, prioritize it. Otherwise summarize the most relevant in-view entities.',
       'If no entities are returned, identify the target from nearbyPlaces, place labels, streetLabels, knownLandmarks, and the viewport image.',
       'Mention only useful building/place names, streets, layer/type, location, enabled layers, and notable properties. Be concise.',
@@ -2131,7 +2131,7 @@ function responseInstructionForToolResult(result) {
     ].join(' ');
   }
   if (result?.action === 'get_current_view_state') {
-    return 'Briefly summarize the current GEV camera, active style, and relevant enabled layers. Do not repeat yourself.';
+    return 'Briefly summarize the current CAKRAWALA camera, active style, and relevant enabled layers. Do not repeat yourself.';
   }
   if (result?.action === 'adjust_camera_zoom') {
     return result.ok
@@ -2165,7 +2165,7 @@ function responseInstructionForToolResult(result) {
   if (result?.action === 'clear_annotations') {
     return 'The map annotations are cleared. Continue naturally; do not announce the clear.';
   }
-  return 'Briefly confirm the completed GEV action once. Do not repeat yourself.';
+  return 'Briefly confirm the completed CAKRAWALA action once. Do not repeat yourself.';
 }
 
 function createDebugSessionId() {

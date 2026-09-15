@@ -19,6 +19,9 @@ import {
   REGION_SWATH_SPAN_KM,
   GLOBE_VIEW,
   searchAndFlyTo,
+  ionGeocodePlan,
+  pickIonGeocodeResult,
+  searchAndFlyToWithIon,
 } from './locations.js';
 
 function stubViewer() {
@@ -596,4 +599,65 @@ test('search without an authority hook preserves the existing caller contract', 
   const result = await runSearch(viewer, {});
   assert.equal(result.navigationMode, 'city-overview');
   assert.equal(viewer.flights.length, 1);
+});
+
+test('ion geocode plans frame by box size: landmark, area, city, region', () => {
+  const box = (west, south, east, north) => ({ displayName: 'place', destination: Cesium.Rectangle.fromDegrees(west, south, east, north) });
+  assert.equal(ionGeocodePlan(box(107.6180, -6.9031, 107.6196, -6.9019)).navigationMode, 'precise-place');
+  assert.equal(ionGeocodePlan(box(110.28, -8.04, 110.34, -7.99)).navigationMode, 'area-overview');
+  assert.equal(ionGeocodePlan(box(112.59, -7.35, 112.85, -7.18)).navigationMode, 'city-overview');
+  assert.equal(ionGeocodePlan(box(95.0, -11.0, 141.0, 6.0)).navigationMode, 'region-overview');
+  const point = ionGeocodePlan({ displayName: 'Monas', destination: Cesium.Cartesian3.fromDegrees(106.8272, -6.1754) });
+  assert.equal(point.navigationMode, 'precise-place');
+  assert.ok(Math.abs(point.lat + 6.1754) < 1e-6 && Math.abs(point.lon - 106.8272) < 1e-6);
+  assert.equal(ionGeocodePlan(null), null);
+  assert.equal(ionGeocodePlan({ displayName: 'no destination' }), null);
+});
+
+test("an ambiguous ion result near the view beats ion's first result", () => {
+  const gorontalo = { displayName: 'Monas, Gorontalo', destination: Cesium.Rectangle.fromDegrees(122.62, 0.82, 122.72, 0.93) };
+  const jakarta = { displayName: 'Monas, Jakarta', destination: Cesium.Rectangle.fromDegrees(106.825, -6.177, 106.829, -6.173) };
+  assert.equal(pickIonGeocodeResult([gorontalo, jakarta], { lat: -6.2, lon: 106.8 }).label, 'Monas, Jakarta');
+  assert.equal(
+    pickIonGeocodeResult([gorontalo, jakarta], { lat: 30.27, lon: -97.74 }).label,
+    'Monas, Gorontalo',
+    "with nothing near the view, ion's own ranking stands",
+  );
+  assert.equal(pickIonGeocodeResult([], { lat: 0, lon: 0 }), null);
+});
+
+test('ion search frames a city box and lands a landmark above sampled terrain', async () => {
+  const cityViewer = stubViewer();
+  const city = await searchAndFlyToWithIon(cityViewer, 'Surabaya', {}, {
+    geocoder: { geocode: async () => [{ displayName: 'Surabaya, East Java, Indonesia', destination: Cesium.Rectangle.fromDegrees(112.59, -7.35, 112.85, -7.18) }] },
+    sampleGround: async () => { throw new Error('city framing must not sample terrain'); },
+  });
+  assert.equal(city.navigationMode, 'city-overview');
+  assert.equal(cityViewer.flights.length, 1);
+  assert.ok(cityViewer.flights[0].destination instanceof Cesium.Rectangle);
+
+  const missViewer = stubViewer();
+  assert.equal(await searchAndFlyToWithIon(missViewer, 'nowhere', {}, { geocoder: { geocode: async () => [] } }), null);
+  assert.equal(missViewer.flights.length, 0);
+
+  const landmarkViewer = stubViewer();
+  const hadWindow = Object.hasOwn(globalThis, 'window');
+  const priorWindow = globalThis.window;
+  const priorFetch = globalThis.fetch;
+  globalThis.window = { setTimeout, clearTimeout };
+  globalThis.fetch = async () => ({ ok: false });
+  try {
+    const landmark = await searchAndFlyToWithIon(landmarkViewer, 'Gedung Sate', {}, {
+      geocoder: { geocode: async () => [{ displayName: 'Gedung Sate, Bandung', destination: Cesium.Rectangle.fromDegrees(107.6180, -6.9031, 107.6196, -6.9019) }] },
+      sampleGround: async () => 760,
+    });
+    assert.equal(landmark.navigationMode, 'precise-place');
+    assert.equal(landmarkViewer.flights.length, 1);
+    const target = Cesium.Cartographic.fromCartesian(landmarkViewer.flights[0].sphere.center);
+    assert.ok(target.height > 760, 'landmark target must sit above Bandung terrain, got ' + target.height.toFixed(0) + ' m');
+  } finally {
+    globalThis.fetch = priorFetch;
+    if (hadWindow) globalThis.window = priorWindow;
+    else delete globalThis.window;
+  }
 });

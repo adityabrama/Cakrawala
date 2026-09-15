@@ -680,10 +680,15 @@ function _likelyLanded(icao24) {
 
 /** @constant {number} Fleet dead-reckoning tick interval (ms) — ~12Hz, not per-frame. */
 const FLEET_DR_INTERVAL_MS = 80;
+/** Fleet ticks between dead-reckoning passes for a contact that was beyond the
+ *  horizon on its previous tick (6 × 80 ms ≈ 0.5 s). A hidden sprite is never
+ *  drawn, so its position only has to stay fresh enough for the horizon test. */
+const HIDDEN_CONTACT_DR_STRIDE = 6;
 /** @constant {number} Max ms between rotation passes while the camera is idle. */
 const ROTATION_REFRESH_MS = 1000;
 /** @type {number} Epoch ms of the last fleet dead-reckoning pass */
 let _lastFleetTickMs = 0;
+let _fleetTickSeq = 0;
 /** @type {string} Camera pose signature at the last rotation pass */
 let _lastCamPoseSig = '';
 /** @type {number} Epoch ms of the last full rotation pass */
@@ -709,6 +714,8 @@ const _scratchCarto = new Cesium.Cartographic();
 const _scratchEnu = new Cesium.Matrix4();
 const _scratchArc = { east: 0, north: 0, endCourseDeg: 0 };
 const _scratchRenderTime = new Cesium.JulianDate();
+const _scratchNowJulian = new Cesium.JulianDate();
+let _renderTimeEpochMs = NaN;
 const _scratchFleetPos = new Cesium.Cartesian3();
 const _scratchDrRaw = new Cesium.Cartesian3();
 const _scratchWarmupTime = new Cesium.JulianDate();
@@ -1116,9 +1123,7 @@ function _deadReckon(icao24, result) {
   const out = result || new Cesium.Cartesian3();
   // Render one poll interval behind real time so we interpolate between
   // two KNOWN fixes whenever possible (see RENDER_DELAY_SEC rationale).
-  const renderTime = Cesium.JulianDate.addSeconds(
-    Cesium.JulianDate.now(), -RENDER_DELAY_SEC, _scratchRenderTime
-  );
+  const renderTime = _delayedRenderTime();
 
   // Bracketing pair: interpolate — no extrapolation error, no snap-back.
   for (let i = history.length - 1; i >= 1; i--) {
@@ -1196,6 +1201,40 @@ function _deadReckon(icao24, result) {
     out,
     (info && info.turnRateDps) || 0,
   );
+}
+
+/**
+ * The delayed display clock (now − RENDER_DELAY_SEC), rebuilt once per
+ * wall-clock millisecond. A fleet tick dead-reckons thousands of contacts
+ * within the same millisecond, and JulianDate.now() allocated a Date and a
+ * JulianDate for every one of them.
+ * @returns {Cesium.JulianDate} Shared scratch — read it, never keep it.
+ */
+function _delayedRenderTime() {
+  const epochMs = Date.now();
+  if (epochMs !== _renderTimeEpochMs) {
+    _renderTimeEpochMs = epochMs;
+    Cesium.JulianDate.fromDate(new Date(epochMs), _scratchNowJulian);
+    Cesium.JulianDate.addSeconds(_scratchNowJulian, -RENDER_DELAY_SEC, _scratchRenderTime);
+  }
+  return _scratchRenderTime;
+}
+
+/**
+ * Stable per-contact offset into HIDDEN_CONTACT_DR_STRIDE, cached on the
+ * billboard, so hidden contacts spread their refreshes across ticks.
+ * @param {Cesium.Billboard} bb
+ * @param {string} icao24
+ * @returns {number}
+ */
+function _hiddenStrideSlot(bb, icao24) {
+  if (bb._gevStrideSlot === undefined) {
+    const key = String(icao24);
+    let hash = 0;
+    for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+    bb._gevStrideSlot = Math.abs(hash) % HIDDEN_CONTACT_DR_STRIDE;
+  }
+  return bb._gevStrideSlot;
 }
 
 /**
@@ -2639,6 +2678,7 @@ function _fleetTick() {
 
   const occluder = horizonOccluder(camera);
   const focusTarget = getFocusTarget();
+  _fleetTickSeq += 1;
 
   // 3D model regime: only when enabled AND the camera is zoomed in past the altitude ceiling.
   // Drop all models the moment we leave it (toggled off / zoomed out) so billboards resume.
@@ -2712,6 +2752,18 @@ function _fleetTick() {
 
     const info = _flightData.get(icao24);
 
+    // A contact that was beyond the horizon on its previous tick is
+    // dead-reckoned on a stride instead of every tick. Its sprite is hidden,
+    // its course does not advance while hidden (the horizon branch below
+    // `continue`s before the course update), and the horizon test still runs
+    // every tick on the last written position — so a contact rising into
+    // view takes the full path on that same tick.
+    if (bb._gevBeyondHorizon
+      && (_fleetTickSeq + _hiddenStrideSlot(bb, icao24)) % HIDDEN_CONTACT_DR_STRIDE !== 0
+      && !occluder.isPointVisible(info?.cullPosition || bb.position)) {
+      continue;
+    }
+
     const dr = _deadReckon(icao24, _scratchFleetPos);
     // The dead-reckoned point drifts away from the fix whose cell supplied the
     // height, so a grounded contact's sprite ends up under the mesh it taxied
@@ -2730,6 +2782,7 @@ function _fleetTick() {
     // pass would hide a plane that is really just low over high-N terrain
     // waiting for its floor to warm (ATL grounded contacts at geoid −31 m).
     const beyondHorizon = !occluder.isPointVisible(info?.cullPosition || bb.position);
+    bb._gevBeyondHorizon = beyondHorizon;
     // A billboard flipping INTO view (horizon reveal while the camera idles)
     // gets its rotation refreshed THIS tick even without a pose change —
     // otherwise it reappears wearing its stale (often creation-north) nose for
