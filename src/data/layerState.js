@@ -280,6 +280,9 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   Object.freeze({ id: 'cctv', token: 'c', disposition: 'enabled+options', optionOwner: 'cctv' }),
   Object.freeze({ id: 'earthquakes', token: 'e', disposition: 'enabled-only' }),
   Object.freeze({ id: 'flights', token: 'f', disposition: 'enabled+options', optionOwner: 'flights' }),
+  // Intelligence-engine layers: Indonesia disaster signals and geolocated news.
+  Object.freeze({ id: 'id-events', token: 'n', disposition: 'enabled-only' }),
+  Object.freeze({ id: 'id-news', token: 'j', disposition: 'enabled-only' }),
   Object.freeze({ id: 'local-dams', token: 'q', disposition: 'enabled-only' }),
   Object.freeze({ id: 'local-datacenters', token: 'd', disposition: 'enabled-only' }),
   Object.freeze({ id: 'local-firms', token: 'w', disposition: 'enabled-only' }),

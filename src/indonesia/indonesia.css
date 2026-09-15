@@ -1,0 +1,265 @@
+/* ═══════════════════════════════════════════════
+   CAKRAWALA — Indonesia command center, GIS mode
+   Additive styles; the base look comes from style.css tokens.
+   ═══════════════════════════════════════════════ */
+
+/* Top-center nav additions */
+#top-center-actions .idn-nav-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: inherit;
+}
+#top-center-actions #indonesia-drawer-btn,
+#top-center-actions #map-mode-btn {
+  position: relative;
+  width: auto;
+  min-width: 36px;
+  padding: 0 11px;
+  border-radius: 18px;
+}
+#top-center-actions button.active {
+  color: var(--accent);
+  border-color: rgba(0, 212, 255, 0.45);
+  box-shadow: 0 0 12px var(--accent-dim);
+}
+.idn-nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ffb300;
+  color: #0a0a0f;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.idn-nav-badge.high { background: #ff6b3d; }
+.idn-nav-badge.crit { background: #ff2d55; color: #fff; }
+
+/* Drawer */
+.idn-drawer {
+  position: fixed;
+  top: 84px;
+  right: 20px;
+  bottom: 24px;
+  width: min(390px, calc(100vw - 40px));
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--panel-radius);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+.idn-drawer[hidden] { display: none; }
+.idn-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.idn-brand { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.idn-flag {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 18px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.idn-flag i { flex: 1; display: block; }
+.idn-flag i:first-child { background: #e0242a; }
+.idn-flag i:last-child { background: #f4f4f4; }
+.idn-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; color: var(--accent); }
+.idn-status { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.6px; color: var(--text-secondary); margin-top: 3px; }
+.idn-status.stale { color: #ffb300; }
+.idn-close {
+  width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03); color: var(--text-dim); font-size: 16px; line-height: 1; cursor: pointer;
+}
+.idn-close:hover { color: var(--text-primary); border-color: var(--glass-border-hover); }
+.idn-close-sm { width: 20px; height: 20px; font-size: 13px; }
+
+.idn-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.idn-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.idn-switch-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.idn-switch-track {
+  width: 32px; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); position: relative; transition: background var(--transition-fast);
+}
+.idn-switch-track::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--text-secondary); transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.idn-switch-input:checked + .idn-switch-track { background: rgba(0, 212, 255, 0.35); }
+.idn-switch-input:checked + .idn-switch-track::after { transform: translateX(16px); background: var(--accent); }
+.idn-switch-input:focus-visible + .idn-switch-track { outline: 1px solid var(--accent); outline-offset: 2px; }
+.idn-switch-label, .idn-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.8px; color: var(--text-secondary); }
+.idn-select, .gis-select {
+  flex: 1 1 120px; min-width: 0; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 15, 0.8); color: var(--text-primary); font-family: var(--font-mono); font-size: 10px;
+}
+.idn-seg { display: inline-flex; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; overflow: hidden; }
+.idn-seg-btn {
+  padding: 5px 9px; border: 0; background: transparent; color: var(--text-dim); font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.4px; cursor: pointer;
+}
+.idn-seg-btn.active { background: var(--accent-dim); color: var(--accent); }
+.idn-btn, .gis-btn {
+  padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary); font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.4px; cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+.idn-btn:hover, .gis-btn:hover { color: var(--text-primary); border-color: var(--glass-border-hover); }
+.idn-btn:disabled { opacity: 0.5; cursor: wait; }
+.idn-btn.active, .gis-btn.active { color: var(--accent); border-color: rgba(0, 212, 255, 0.45); background: var(--accent-dim); }
+.idn-btn-icon { padding: 5px 8px; }
+.idn-btn-ghost, .gis-btn-ghost { background: transparent; }
+
+.idn-timeline { display: flex; flex-direction: column; gap: 6px; padding: 8px 0 4px; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); }
+.idn-timeline-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.idn-chip {
+  padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: var(--text-dim);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; cursor: pointer;
+}
+.idn-chip.active { color: var(--accent); border-color: rgba(0, 212, 255, 0.5); background: var(--accent-dim); }
+.idn-chip-type::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--chip-color); margin-right: 5px; opacity: 0.45; }
+.idn-chip-type.active::before { opacity: 1; }
+.idn-chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.idn-range { flex: 1; accent-color: var(--accent); min-width: 0; }
+.idn-cursor { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); letter-spacing: 0.4px; white-space: nowrap; }
+
+.idn-tabs { display: flex; gap: 2px; }
+.idn-tab {
+  flex: 1; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-dim);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.4px; cursor: pointer;
+}
+.idn-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.idn-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; }
+.idn-body::-webkit-scrollbar { width: 6px; }
+.idn-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+.idn-section-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+.idn-list { display: flex; flex-direction: column; gap: 4px; }
+.idn-empty, .idn-note { color: var(--text-secondary); font-size: 11px; line-height: 1.5; }
+.idn-note { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.4px; margin-top: 6px; }
+.idn-row { display: flex; gap: 6px; align-items: center; }
+.idn-row-wrap { flex-wrap: wrap; }
+
+.idn-event, .idn-alert, .idn-source, .idn-related-row {
+  display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left; padding: 7px 8px; border-radius: 8px;
+  border: 1px solid transparent; background: rgba(255, 255, 255, 0.025); color: var(--text-primary); cursor: pointer; font: inherit;
+}
+.idn-source { cursor: default; }
+.idn-event:hover, .idn-alert:hover, .idn-related-row:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--glass-border); }
+.idn-event.selected { border-color: rgba(0, 212, 255, 0.5); background: var(--accent-dim); }
+.idn-event-main, .idn-alert-main, .idn-source-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.idn-event-title { font-size: 11.5px; line-height: 1.35; }
+.idn-event-meta { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.5px; color: var(--text-secondary); line-height: 1.4; word-break: break-word; }
+.idn-event-meta.err { color: #ff6b3d; }
+.idn-link { font-family: var(--font-mono); font-size: 8.5px; color: var(--accent); text-decoration: none; word-break: break-all; }
+.idn-dot { flex: 0 0 auto; width: 10px; height: 10px; margin-top: 3px; border-radius: 50%; background: var(--dot-color, #ddd); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35); }
+.idn-dot.sev-high { box-shadow: 0 0 0 2px rgba(255, 107, 61, 0.55), 0 0 8px rgba(255, 107, 61, 0.6); }
+.idn-dot.sev-critical { box-shadow: 0 0 0 2px rgba(255, 45, 85, 0.7), 0 0 12px rgba(255, 45, 85, 0.8); }
+.idn-dot.sev-info { opacity: 0.6; }
+.idn-level, .idn-state {
+  flex: 0 0 auto; min-width: 58px; padding: 2px 6px; border-radius: 4px; text-align: center; font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; font-weight: 600;
+  background: rgba(255, 255, 255, 0.08); color: var(--text-secondary);
+}
+.idn-level.crit { background: #ff2d55; color: #fff; }
+.idn-level.high { background: #ff6b3d; color: #0a0a0f; }
+.idn-level.med { background: #ffb300; color: #0a0a0f; }
+.idn-level.low { background: rgba(79, 195, 247, 0.35); color: #cfefff; }
+.idn-state.ok { background: rgba(0, 212, 255, 0.2); color: var(--accent); }
+.idn-state.error, .idn-state.timeout { background: rgba(255, 107, 61, 0.25); color: #ffb39e; }
+.idn-state.not-configured { background: rgba(255, 255, 255, 0.06); color: var(--text-dim); }
+
+.idn-detail { padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(0, 212, 255, 0.35); background: rgba(0, 212, 255, 0.06); display: flex; flex-direction: column; gap: 5px; }
+.idn-detail[hidden] { display: none; }
+.idn-detail-head { display: flex; gap: 8px; align-items: flex-start; }
+.idn-detail-title { flex: 1; font-size: 12px; line-height: 1.35; }
+.idn-detail-meta { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px; color: var(--text-secondary); white-space: pre-line; line-height: 1.5; }
+.idn-detail-desc { font-size: 11px; line-height: 1.45; color: var(--text-primary); }
+.idn-detail-source { display: flex; justify-content: space-between; gap: 8px; font-family: var(--font-mono); font-size: 8.5px; color: var(--text-dim); }
+.idn-detail-source a { color: var(--accent); text-decoration: none; }
+.idn-related { display: flex; flex-direction: column; gap: 3px; }
+.idn-related-title { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.6px; color: var(--text-dim); }
+.idn-related-row { padding: 4px 6px; font-family: var(--font-mono); font-size: 8.5px; color: var(--text-secondary); }
+
+.idn-health { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+.idn-health-row { display: flex; justify-content: space-between; gap: 6px; padding: 3px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.025); }
+.idn-health-label { font-size: 10.5px; color: var(--text-secondary); }
+.idn-health-value { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; color: var(--text-dim); }
+.idn-health-value.online { color: var(--accent); }
+.idn-health-value.degraded { color: #ffb300; }
+.idn-health-value.offline { color: #ff6b3d; }
+
+.idn-weather { display: flex; flex-direction: column; gap: 3px; }
+.idn-weather-line { font-family: var(--font-mono); font-size: 9.5px; white-space: pre; overflow-x: auto; color: var(--text-primary); }
+.idn-brief { white-space: pre-wrap; font-family: var(--font-mono); font-size: 9.5px; line-height: 1.55; color: var(--text-primary); background: rgba(0, 0, 0, 0.25); border-radius: 8px; padding: 10px; margin: 0; }
+.idn-econ-row { display: grid; grid-template-columns: 1fr auto 120px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--glass-border); }
+.idn-econ-label { font-size: 11px; }
+.idn-econ-value { font-family: var(--font-mono); font-size: 9.5px; color: var(--accent); text-align: right; }
+.idn-spark { width: 120px; height: 28px; }
+.idn-spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.idn-spark-empty { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); text-align: right; }
+
+/* GIS mode */
+#gis-root { position: fixed; inset: 0; z-index: 8; background: #0a0a0f; }
+#gis-root[hidden] { display: none; }
+#gis-root .gis-map { position: absolute; inset: 0; }
+/* The globe's own chrome (layer toggles, display rail, HUD, labels) belongs
+   to the 3D scene; the GIS map carries its own layer controls. */
+body.gis-mode #world-overlay-root,
+body.gis-mode #world-overlay-actions,
+body.gis-mode #intel-hud,
+body.gis-mode #cesium-credits,
+body.gis-mode #left-panel-stack,
+body.gis-mode #right-context-rail,
+body.gis-mode #style-indicator,
+body.gis-mode #traffic-sync-chip,
+body.gis-mode #cctv-sync-chip { visibility: hidden; pointer-events: none; }
+/* Panels inside the two stacks set their own visibility/pointer-events (the
+   collapsed data panel stays visible and clickable at z-index 100), so the
+   inherited hide above is not enough: in GIS mode nothing from the 3D chrome
+   may sit above the map or the analysis panel. */
+body.gis-mode #left-panel-stack *,
+body.gis-mode #right-context-rail * { visibility: hidden !important; pointer-events: none !important; }
+.gis-panel {
+  position: absolute; top: 88px; left: 20px; width: min(340px, calc(100vw - 40px)); max-height: calc(100vh - 130px); overflow-y: auto; z-index: 3;
+  display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--panel-radius); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--text-primary); font-family: var(--font-sans); font-size: 12px;
+}
+.gis-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gis-panel-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; color: var(--accent); }
+.gis-row { display: flex; gap: 6px; align-items: center; }
+.gis-row-wrap { flex-wrap: wrap; }
+.gis-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.8px; color: var(--text-secondary); min-width: 62px; }
+.gis-check { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.8px; color: var(--text-secondary); cursor: pointer; }
+.gis-check input { accent-color: var(--accent); }
+.gis-input { width: 58px; padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(10, 10, 15, 0.8); color: var(--text-primary); font-family: var(--font-mono); font-size: 10px; }
+.gis-unit, .gis-mode-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.6px; }
+.gis-mode-label { flex: 1; }
+.gis-results { display: flex; flex-direction: column; gap: 3px; padding-top: 6px; border-top: 1px solid var(--glass-border); }
+.gis-results-title { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1.4px; color: var(--accent); }
+.gis-results-line { font-family: var(--font-mono); font-size: 9.5px; line-height: 1.5; color: var(--text-primary); }
+.gis-results-note { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); line-height: 1.4; }
+.gis-export-row { display: flex; gap: 6px; margin-top: 4px; }
+#gis-root .maplibregl-ctrl-attrib { background: rgba(10, 10, 15, 0.7); color: var(--text-secondary); font-size: 10px; }
+#gis-root .maplibregl-ctrl-attrib a { color: var(--accent); }
+#gis-root .maplibregl-popup-content { background: rgba(12, 12, 20, 0.95); color: var(--text-primary); border: 1px solid var(--glass-border); border-radius: 8px; font-family: var(--font-sans); font-size: 11px; }
+#gis-root .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: rgba(12, 12, 20, 0.95); }
+#gis-root .maplibregl-popup-close-button { color: var(--text-secondary); }
+#gis-root .maplibregl-ctrl-group { background: rgba(12, 12, 20, 0.85); }
+#gis-root .maplibregl-ctrl-group button { filter: invert(1) hue-rotate(180deg); }
+
+@media (max-width: 720px) {
+  .idn-drawer { top: 76px; right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  .gis-panel { top: 76px; left: 8px; }
+}

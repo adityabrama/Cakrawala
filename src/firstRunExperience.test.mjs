@@ -657,13 +657,17 @@ test('the voice TOOL SCHEMA is byte-identical to main — the mission mapping is
 
   // Re-pinned 2026-08-28: the Provider Settings / Esri release DELIBERATELY
   // extends set_map_stack's enum with 'esri-imagery' (a real new basemap —
-  // exactly the kind of schema change this pin exists to make loud). The
-  // guarded claim is unchanged: first-run missions ride existing tools, and
-  // any NEW drift from this recorded schema still fails here.
-  assert.equal(block.length, 31189, 'tool schema byte length drifted from the pinned release schema');
+  // exactly the kind of schema change this pin exists to make loud).
+  // Re-pinned 2026-09-15: the Indonesia integration DELIBERATELY adds nine
+  // tools (Indonesia mode, GIS map mode, brief, event queries, source status,
+  // timeline, distance, buffer) and the two intelligence layers to
+  // set_layer_visibility's enum. The guarded claim is unchanged: first-run
+  // missions ride existing tools, and any NEW drift from this recorded
+  // schema still fails here.
+  assert.equal(block.length, 37482, 'tool schema byte length drifted from the pinned release schema');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    '73aaabdb169a5478893d28688f327a21edd32ed3ec16fc6287bd944ed77beecf',
+    '1ab67d25547eaa7b6fc6f35b9c27c6aac1aa6670eeac420383e5e7e389f4903a',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
 

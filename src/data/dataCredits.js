@@ -206,6 +206,54 @@ export const DATA_CREDITS = [
       '<a href="https://www.submarinecablemap.com" target="_blank" rel="noopener">submarinecablemap.com</a> ' +
       '(CC BY-NC-SA 3.0 — NonCommercial)',
   },
+  // ── Indonesia intelligence engine (docs/INDONESIA-DATA-SOURCES.md) ─────
+  {
+    key: 'bmkg',
+    html:
+      'Gempabumi &amp; prakiraan cuaca: BMKG — ' +
+      '<a href="https://www.bmkg.go.id" target="_blank" rel="noopener">bmkg.go.id</a>',
+  },
+  {
+    key: 'bnpb',
+    html:
+      'Kejadian bencana &amp; batas administrasi (Kemendagri): BNPB Pusdatinkom — ' +
+      '<a href="https://gis.bnpb.go.id" target="_blank" rel="noopener">gis.bnpb.go.id</a>',
+  },
+  {
+    key: 'pvmbg',
+    html:
+      'Tingkat aktivitas gunung api: PVMBG / MAGMA Indonesia (Badan Geologi) — ' +
+      '<a href="https://magma.esdm.go.id" target="_blank" rel="noopener">magma.esdm.go.id</a>; ' +
+      'volcano positions: Wikidata (CC0)',
+  },
+  {
+    key: 'gdelt',
+    html:
+      'News metadata: The GDELT Project — ' +
+      '<a href="https://www.gdeltproject.org" target="_blank" rel="noopener">gdeltproject.org</a>',
+  },
+  {
+    key: 'open-meteo',
+    html:
+      'Weather &amp; air quality: ' +
+      '<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)',
+  },
+  {
+    key: 'world-bank',
+    html:
+      'Economic indicators: World Bank Open Data (CC BY 4.0); exchange rates: Frankfurter / ECB',
+  },
+  {
+    key: 'ourairports',
+    html:
+      'Airports: <a href="https://ourairports.com" target="_blank" rel="noopener">OurAirports</a> (public domain); ' +
+      'administrative codes: Kemendagri via <a href="https://wilayah.id" target="_blank" rel="noopener">wilayah.id</a>',
+  },
+  {
+    key: 'gis-basemaps',
+    html:
+      'GIS basemaps: OpenFreeMap (© OpenMapTiles, © OpenStreetMap contributors, ODbL) · Esri World Imagery',
+  },
 ];
 
 /**

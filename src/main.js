@@ -1,6 +1,9 @@
 import * as Cesium from 'cesium';
 import { StyleManager } from './ui.js';
-import { flyToAustin } from './camera.js';
+import { flyToIndonesia } from './indonesia/indonesiaCamera.js';
+import intelEventLayers from './data/intelEvents.js';
+import { initIndonesiaCommandCenter } from './indonesia/indonesiaDrawer.js';
+import './indonesia/indonesia.css';
 import { DataLayerManager } from './data/manager.js';
 import flightsLayer from './data/flights.js';
 import militaryFlightsLayer from './data/militaryFlights.js';
@@ -204,10 +207,11 @@ async function init() {
     const weatherEffects = null;
     const cockpitCloudEffects = initCockpitCloudEffects(viewer);
 
-    // If no share link state, do default fly-to Austin
+    // Indonesia first: with no share link, open on the whole archipelago.
+    // Austin and the other presets stay one click away in the location bar.
     if (!styleManager.hasShareState) {
-      loaderStatus.textContent = 'Flying to Austin, TX...';
-      flyToAustin(viewer);
+      loaderStatus.textContent = 'Flying to Indonesia...';
+      flyToIndonesia(viewer);
     } else {
       loaderStatus.textContent = 'Restoring shared view...';
     }
@@ -233,6 +237,10 @@ async function init() {
     for (const layer of localDataLayers) {
       dataManager.register(layer);
     }
+    // Intelligence-engine layers (Indonesia disaster signals, geolocated news).
+    for (const layer of intelEventLayers) {
+      dataManager.register(layer);
+    }
     // Restoration starts only after the complete production registry is sealed.
     dataManager.finalizeRegistrations(LAYER_STATE_REGISTRY);
     if (import.meta.env.DEV) {
@@ -253,6 +261,10 @@ async function init() {
 
     // Initialize the voice "whiteboard" annotation engine (world-space renderer)
     const annotations = initAnnotations({ viewer, tileset });
+
+    // Indonesia command center: alerts, disaster center, weather, brief,
+    // sources, timeline, and the 3D ↔ GIS map switch. Self-contained DOM.
+    const indonesia = initIndonesiaCommandCenter({ viewer, dataManager });
 
     // Keep startup chrome truthful: a share is not restored until camera,
     // visual/map/panel lanes, and every requested layer have terminated.
@@ -330,6 +342,7 @@ async function init() {
       sceneDirector,
       mapStackController,
       annotations,
+      indonesia,
       weatherEffects,
       cockpitCloudEffects,
       getRenderGovernorDiagnostics,

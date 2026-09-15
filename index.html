@@ -17,6 +17,10 @@
     <div id="world-overlay-action-list"></div>
     <div id="world-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
   </div>
+  <!-- 2D GIS map (MapLibre). Hidden until the GIS mode is chosen; the globe pauses underneath. -->
+  <div id="gis-root" hidden aria-label="2D GIS map">
+    <div class="gis-map" id="gis-map"></div>
+  </div>
 
   <!-- Title -->
   <div id="title-bar">
@@ -41,6 +45,12 @@
     </button>
     <button id="reset-globe-view" type="button" aria-label="Reset to full globe view" title="Reset camera and return to full globe view">
       <span class="material-symbols-outlined" aria-hidden="true">public</span>
+    </button>
+    <button id="indonesia-drawer-btn" type="button" aria-label="Open Indonesia command center" aria-expanded="false" aria-controls="indonesia-drawer" title="Indonesia command center: alerts, disaster signals, weather, brief, sources">
+      <span class="idn-nav-label">ID</span>
+    </button>
+    <button id="map-mode-btn" type="button" aria-label="Switch between the 3D globe and the 2D GIS map" aria-pressed="false" title="Switch to the 2D GIS map (boundaries, spatial analysis)">
+      <span class="idn-nav-label">GIS</span>
     </button>
   </nav>
   <div id="global-loading-status" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -909,6 +919,9 @@
 
   <!-- Intelligence HUD Overlay -->
   <div id="intel-hud"></div>
+
+  <!-- Indonesia command center: alerts, disaster signals, weather, brief, economy, sources -->
+  <aside id="indonesia-drawer" class="idn-drawer" hidden aria-label="Indonesia command center" tabindex="-1"></aside>
 
   <!-- Loading screen -->
   <div id="loading-screen">
