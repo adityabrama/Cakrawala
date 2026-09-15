@@ -30,7 +30,23 @@ export const CREDENTIALS = Object.freeze([
     )),
   },
   { name: 'LL2_API_TOKEN', label: 'Launch Library 2', keychain: [] },
+  { name: 'RELIEFWEB_APPNAME', label: 'ReliefWeb (Indonesia disasters)', keychain: [] },
 ]);
+
+/** Bundled Indonesia data pack files the intelligence engine and GIS mode read. */
+export const INDONESIA_PACK_FILES = Object.freeze([
+  'src/data/indonesia/provinces.json',
+  'src/data/indonesia/regencies.json',
+  'src/data/indonesia/volcanoes.json',
+  'src/data/indonesia/airports.json',
+  'src/data/indonesia/weatherPoints.json',
+  'src/data/local_data/indonesia/regencies.geojson',
+]);
+
+/** Report which Indonesia pack files are missing (empty list means complete). */
+export function missingIndonesiaPackFiles(rootDir = ROOT) {
+  return INDONESIA_PACK_FILES.filter((relative) => !existsSync(path.join(rootDir, relative)));
+}
 
 export function isConfiguredValue(value) {
   const normalized = String(value || '').trim();
@@ -148,6 +164,9 @@ export function buildCapabilitySummary(credentials) {
     missions: configured('LL2_API_TOKEN')
       ? 'Launch Library 2 token allowance'
       : 'Launch Library 2 public access',
+    indonesia: configured('RELIEFWEB_APPNAME')
+      ? 'BMKG, USGS, BNPB, MAGMA, GDELT, World Bank, ECB keyless + ReliefWeb'
+      : 'BMKG, USGS, BNPB, MAGMA, GDELT, World Bank, ECB keyless; ReliefWeb off until RELIEFWEB_APPNAME is set',
   };
 }
 
@@ -163,6 +182,7 @@ export function inspectSetup({ includeKeychain = true, authoritativeEnvironment 
     resolveCredential(spec, { includeKeychain, authoritativeEnvironment }),
   ]));
   const dependenciesInstalled = hasRequiredDependencies();
+  const indonesiaPackMissing = missingIndonesiaPackFiles();
   return {
     ready: node.level !== 'error' && npmResult.status === 0 && dependenciesInstalled,
     node: { version: process.versions.node, ...node },
@@ -170,6 +190,7 @@ export function inspectSetup({ includeKeychain = true, authoritativeEnvironment 
       ? { available: true, version: String(npmResult.stdout || '').trim() }
       : { available: false, version: null },
     dependenciesInstalled,
+    indonesiaPackMissing,
     credentials,
     capabilities: buildCapabilitySummary(credentials),
   };
@@ -193,6 +214,13 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     `[${symbol(report.node.level)}] Node ${report.node.version}: ${report.node.summary}`,
     report.npm.available ? `[OK] npm ${report.npm.version}` : '[ERROR] npm was not found',
     report.dependenciesInstalled ? '[OK] dependencies installed' : '[WARN] dependencies missing; run npm install',
+    // The Indonesia pack is optional: without it the engine still sweeps live
+    // sources, but province/regency locators and GIS boundaries are empty.
+    ...(Array.isArray(report.indonesiaPackMissing)
+      ? [report.indonesiaPackMissing.length === 0
+        ? '[OK] Indonesia data pack present'
+        : `[WARN] Indonesia data pack incomplete (${report.indonesiaPackMissing.join(', ')}); run node scripts/build-indonesia-pack.mjs`]
+      : []),
     '',
     `Map:     ${report.capabilities.map}`,
     `Flights: ${report.capabilities.flights}`,
@@ -201,10 +229,12 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     `Fires:   ${report.capabilities.fires}`,
     `Traffic: ${report.capabilities.traffic}`,
     `Missions: ${report.capabilities.missions}`,
+    ...(report.capabilities.indonesia ? [`Indonesia: ${report.capabilities.indonesia}`] : []),
     '',
     'Configured providers:',
     ...CREDENTIALS.map((spec) => {
-      const state = report.credentials[spec.name];
+      // A report built before a credential was added lists it as absent.
+      const state = report.credentials?.[spec.name] || { configured: false };
       return state.configured
         ? `  [OK] ${spec.label} (${state.source})`
         : `  [--] ${spec.label}`;

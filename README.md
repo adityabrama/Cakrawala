@@ -304,6 +304,35 @@ Thirteen layers and map sources. **Eleven have a keyless path.** Some offer addi
 
 ---
 
+## 🇮🇩 Indonesia Command Center
+
+CAKRAWALA opens on Indonesia. The **ID** button in the top bar opens the command
+center; **GIS** switches the same view to a 2D analysis map and back without
+losing your place.
+
+| Tab | What it shows | Sources |
+|-----|---------------|---------|
+| **ALERTS** | Rule-based alert center (INFO → CRITICAL): tsunami potential, M5+ earthquakes, volcano Level III/IV, BNPB casualty reports, severe forecasts, escalations. Every alert names its source, timestamp, rule, and confidence. | BMKG, USGS, PVMBG, BNPB |
+| **EVENTS** | Disaster center: earthquakes, volcano activity levels, floods, landslides, fires, weather, news — filter by type, province, and a scrubbable timeline (1 h → 30 d, with playback). Click an event to fly to it; related signals are listed as *correlated*, never as causes. | BMKG, USGS, BNPB, PVMBG/MAGMA, GDELT |
+| **WEATHER** | Official BMKG 3-hourly forecast for 26 cities, and Open-Meteo weather + air quality at any point (map centre or a GIS click). Forecasts are labelled MODELED. | BMKG, Open-Meteo |
+| **BRIEF** | Indonesia or province brief: a source-stamped summary of the notable signals in the window. No language model needed. | engine |
+| **ECONOMY** | GDP, growth, inflation, unemployment, population, poverty (annual) and IDR reference rates. | World Bank, ECB via Frankfurter |
+| **SOURCES** | Provider health: state, cadence, last run, event count, license, attribution, and which optional key is missing. | engine |
+
+The **GIS map** (MapLibre GL, keyless OpenFreeMap / Esri basemaps) draws the
+514 kabupaten/kota boundaries (BNPB / Kemendagri 2023), the same events,
+624 airports, and 139 volcanoes, and adds a spatial toolbox: measure, buffer
+(events inside, nearest airport/volcano), point weather, province focus, and
+GeoJSON/CSV export with attribution.
+
+Everything Indonesian is keyless. The engine sweeps each source on its own
+cadence under `npm run dev` (no second server), keeps sweep history in
+`.gev-intel/`, and serves `/api/intel/*`. Details: [`docs/INDONESIA-DATA-SOURCES.md`](docs/INDONESIA-DATA-SOURCES.md),
+[`docs/INTEGRATION-ARCHITECTURE.md`](docs/INTEGRATION-ARCHITECTURE.md),
+[`docs/LICENSE-AUDIT.md`](docs/LICENSE-AUDIT.md).
+
+---
+
 ## 🎖️ Field Missions
 
 Once the basics click, run these:

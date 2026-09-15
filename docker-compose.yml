@@ -1,0 +1,16 @@
+# Optional: `docker compose up` runs the complete application (client, proxies,
+# intelligence engine) in one container. Keys come from .env (see .env.example).
+services:
+  cakrawala:
+    build: .
+    ports:
+      - "5173:5173"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - intel-memory:/app/.gev-intel
+    restart: unless-stopped
+
+volumes:
+  intel-memory:
