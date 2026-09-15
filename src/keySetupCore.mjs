@@ -94,6 +94,14 @@ export const KEY_SETUP_KEYS = Object.freeze([
     envVars: Object.freeze(['LL2_API_TOKEN']),
     tier: 'free',
   }),
+  Object.freeze({
+    id: 'reliefweb',
+    title: 'RELIEFWEB',
+    unlocks: 'UN OCHA disaster reports in the Indonesia intelligence engine',
+    getUrl: 'https://apidoc.reliefweb.int/parameters#appname',
+    envVars: Object.freeze(['RELIEFWEB_APPNAME']),
+    tier: 'free',
+  }),
 ]);
 
 /** Hostnames a Provider Settings request may arrive under or originate from. */
