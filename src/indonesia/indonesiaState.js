@@ -65,6 +65,32 @@ function writeStorage(state) {
   }
 }
 
+/**
+ * Encode the shareable part of the state as one compact share-link token:
+ * `m.<0|1>` Indonesia mode, `p.<code>` province filter, `g.1` GIS map mode.
+ * Timeline and type chips are session preferences and stay out of the link.
+ */
+export function encodeIndonesiaShareState(state) {
+  const parts = [`m.${state?.enabled ? 1 : 0}`];
+  if (typeof state?.provinceCode === 'string' && /^\d{2}$/.test(state.provinceCode)) parts.push(`p.${state.provinceCode}`);
+  if (state?.mapMode === 'gis') parts.push('g.1');
+  return parts.join('_');
+}
+
+/** Decode a token written by encodeIndonesiaShareState; unknown or malformed pieces are ignored. */
+export function decodeIndonesiaShareState(raw) {
+  if (typeof raw !== 'string' || !raw) return null;
+  const out = {};
+  for (const assignment of raw.split('_')) {
+    const [token, value, ...extra] = assignment.split('.');
+    if (extra.length || value === undefined) continue;
+    if (token === 'm' && (value === '0' || value === '1')) out.enabled = value === '1';
+    else if (token === 'p' && /^\d{2}$/.test(value)) out.provinceCode = value;
+    else if (token === 'g' && (value === '0' || value === '1')) out.mapMode = value === '1' ? 'gis' : '3d';
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 export function createIndonesiaState({ persist = true } = {}) {
   let state = { ...DEFAULTS, ...(persist ? readStorage() : {}) };
   const listeners = new Set();

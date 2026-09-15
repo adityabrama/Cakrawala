@@ -13,7 +13,8 @@
  */
 
 import { intelClient } from './intelClient.js';
-import { EVENT_TYPE_GROUPS, TIMELINE_PRESETS, filterEventsForView, indonesiaState, timelineWindow } from './indonesiaState.js';
+import { EVENT_TYPE_GROUPS, TIMELINE_PRESETS, decodeIndonesiaShareState, encodeIndonesiaShareState, filterEventsForView, indonesiaState, timelineWindow } from './indonesiaState.js';
+import { readShareExtraParam } from '../sharelink.js';
 import { flyToIndonesia, flyToPoint, flyToProvince, heightForEventType, viewCenter } from './indonesiaCamera.js';
 import { EVENT_TYPE_COLORS } from '../data/intelEvents.js';
 import { INDONESIA_BBOX, bboxContains } from '../intelligence/geo.js';
@@ -88,7 +89,14 @@ function formatNumber(value, unit) {
  * @param {import('cesium').Viewer} options.viewer
  * @param {object} options.dataManager DataLayerManager (for enabling the event layers).
  */
-export function initIndonesiaCommandCenter({ viewer, dataManager }) {
+/**
+ * @param {object} options
+ * @param {object} options.viewer Cesium viewer.
+ * @param {object} options.dataManager Layer manager (for id-events / id-news).
+ * @param {object} [options.shareLinkManager] Share-link manager; when given, mode/province/GIS state travels in copied links as `idn`.
+ * @param {Promise} [options.restorePromise] Resolves once a shared camera has landed; a shared GIS mode waits for it.
+ */
+export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManager = null, restorePromise = null }) {
   const root = document.getElementById('indonesia-drawer');
   const navButton = document.getElementById('indonesia-drawer-btn');
   const modeButton = document.getElementById('map-mode-btn');
@@ -103,6 +111,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager }) {
   let eventsStale = false;
   let pack = null;
   let boundaries = null;
+  let provinceBoundaries = null;
   let selected = null;
   let playbackTimer = null;
   let gisMap = null;
@@ -532,6 +541,10 @@ export function initIndonesiaCommandCenter({ viewer, dataManager }) {
         boundaries = collection?.features ? collection : null;
         if (boundaries) gisMap.setBoundaries(boundaries);
       }).catch((error) => console.warn('[indonesia] boundaries unavailable:', error.message));
+      intelClient.getBoundaries('provinces').then((collection) => {
+        provinceBoundaries = collection?.features ? collection : null;
+        if (provinceBoundaries) gisMap.setProvinceBoundaries(provinceBoundaries);
+      }).catch((error) => console.warn('[indonesia] province boundaries unavailable:', error.message));
       gisPanel = createGisPanel({
         root: gisRoot,
         gisMap,
@@ -539,6 +552,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager }) {
         getEvents: filteredEvents,
         getPack: ensurePack,
         getBoundaries: () => boundaries,
+        getProvinceBoundaries: () => provinceBoundaries,
         queryWeather: (lat, lon) => intelClient.getWeather({ lat: lat.toFixed(3), lon: lon.toFixed(3) }),
         onExit: () => mapMode.setMode('3d'),
       });
@@ -676,8 +690,24 @@ export function initIndonesiaCommandCenter({ viewer, dataManager }) {
   ensurePack().then(() => refreshAll());
   syncControls();
   renderTab();
-  if (state.get().enabled) {
+  // A share link's `idn` token wins over the stored preferences. Its layers
+  // and GIS switch wait for the shared camera to land, otherwise the Indonesia
+  // fly-in or the 3D→2D conversion would race the restore flight.
+  const shared = decodeIndonesiaShareState(readShareExtraParam('idn'));
+  if (shared) {
+    state.set({ enabled: shared.enabled ?? state.get().enabled, provinceCode: shared.provinceCode ?? null });
+    Promise.resolve(restorePromise).catch(() => {}).then(() => {
+      if (state.get().enabled) setIndonesiaMode(true);
+      if (shared.mapMode === 'gis') setMapMode('gis');
+    });
+  } else if (state.get().enabled) {
     setTimeout(() => setIndonesiaMode(true), 1500);
+  }
+  if (typeof shareLinkManager?.setExtraStateProvider === 'function') {
+    shareLinkManager.setExtraStateProvider('idn', () => encodeIndonesiaShareState(state.get()));
+    state.subscribe((_, changed) => {
+      if (changed.some((key) => key === 'enabled' || key === 'provinceCode' || key === 'mapMode')) shareLinkManager.onExtraStateChange();
+    });
   }
 
   return {

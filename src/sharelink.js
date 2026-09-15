@@ -31,6 +31,11 @@ const STYLE_TO_URL = {
 const SHARE_UI_STATE_PARAM = 'ui';
 const SHARE_STYLE_PARAMS_PARAM = 'sp';
 const SHARE_CREATED_AT_PARAM = 'at';
+// Extra hash fields owned by self-contained features (the Indonesia command
+// center writes `idn`). Names and values are allowlisted so a provider can
+// never inject a delimiter or an oversized token into the shared address.
+const SHARE_EXTRA_PARAM_NAME = /^[a-z]{2,8}$/;
+const SHARE_EXTRA_PARAM_VALUE = /^[A-Za-z0-9._-]{1,80}$/;
 
 const SHARE_PANEL_STATE_REGISTRY = Object.freeze([
   { id: 'control-panel', token: 'c', pinnable: true },
@@ -126,6 +131,7 @@ export class ShareLinkManager {
     this._layerStateProvider = null;
     this._panelStateProvider = null;
     this._styleParamStateProvider = null;
+    this._extraStateProviders = new Map();
     this._initialRestorePending = false;
     this._restoreAuthority = {
       visual: 0,
@@ -372,6 +378,21 @@ export class ShareLinkManager {
     this._styleParamStateProvider = typeof provider === 'function' ? provider : null;
   }
 
+  /**
+   * Install (or, with a non-function, remove) a provider for one extra hash
+   * field. The provider returns the field's string value or null to omit it.
+   */
+  setExtraStateProvider(param, provider) {
+    if (typeof param !== 'string' || !SHARE_EXTRA_PARAM_NAME.test(param)) return;
+    if (typeof provider === 'function') this._extraStateProviders.set(param, provider);
+    else this._extraStateProviders.delete(param);
+  }
+
+  /** Called when an extra-state provider's value changes. */
+  onExtraStateChange() {
+    this._scheduleUpdate();
+  }
+
   /** Called only when the durable layer preference model changes. */
   onLayerStateChange() {
     this._scheduleUpdate();
@@ -516,6 +537,15 @@ export class ShareLinkManager {
       this._currentStyle,
       this._styleParamStateProvider?.(this._currentStyle),
     );
+    for (const [param, provider] of this._extraStateProviders) {
+      // Core fields were written above and always win: a feature can add a
+      // field, never redefine the camera or visual state.
+      if (params.has(param)) continue;
+      let value = null;
+      try { value = provider(); } catch { value = null; }
+      if (typeof value === 'string' && SHARE_EXTRA_PARAM_VALUE.test(value)) params.set(param, value);
+      else params.delete(param);
+    }
 
     // Copy-time metadata is intentionally absent here. `copyLink()` adds a
     // fresh timestamp to its ephemeral URL without aging the live address.
@@ -541,8 +571,16 @@ export class ShareLinkManager {
     this._layerStateProvider = null;
     this._panelStateProvider = null;
     this._styleParamStateProvider = null;
+    this._extraStateProviders.clear();
     this._onRestore = null;
   }
+}
+
+/** Read one extra hash field (see setExtraStateProvider) from a location hash. */
+export function readShareExtraParam(param, hash = globalThis.window?.location?.hash || '') {
+  if (typeof param !== 'string' || !SHARE_EXTRA_PARAM_NAME.test(param)) return null;
+  const value = new URLSearchParams(String(hash).replace(/^#/, '')).get(param);
+  return typeof value === 'string' && SHARE_EXTRA_PARAM_VALUE.test(value) ? value : null;
 }
 
 /** Decode a strict positive epoch-seconds copy timestamp for age classification. */

@@ -264,7 +264,15 @@ async function init() {
 
     // Indonesia command center: alerts, disaster center, weather, brief,
     // sources, timeline, and the 3D ↔ GIS map switch. Self-contained DOM.
-    const indonesia = initIndonesiaCommandCenter({ viewer, dataManager });
+    // The share-link manager and the restore promise let the drawer put its
+    // mode/province/GIS state into copied links and restore it after the
+    // shared camera has landed.
+    const indonesia = initIndonesiaCommandCenter({
+      viewer,
+      dataManager,
+      shareLinkManager: styleManager.shareLinkManager,
+      restorePromise: styleManager.initialRestorePromise,
+    });
 
     // Keep startup chrome truthful: a share is not restored until camera,
     // visual/map/panel lanes, and every requested layer have terminated.
