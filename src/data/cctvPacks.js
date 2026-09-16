@@ -475,6 +475,144 @@ export function parseDigitrafficCameras(payload) {
 }
 
 /** Indonesian city portals, loaded first so the global source cap never trims them. */
+const BACKSLASH = String.fromCharCode(92);
+const QUOTE = String.fromCharCode(34);
+
+/** Slice a balanced [...] literal out of page source, ignoring brackets inside strings. */
+function sliceJsonArray(text, from) {
+  const open = text.indexOf('[', from);
+  if (open < 0) return '';
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = open; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === BACKSLASH) escaped = true;
+      else if (ch === QUOTE) inString = false;
+      continue;
+    }
+    if (ch === QUOTE) inString = true;
+    else if (ch === '[') depth += 1;
+    else if (ch === ']') {
+      depth -= 1;
+      if (depth === 0) return text.slice(open, i + 1);
+    }
+  }
+  return '';
+}
+
+const SEMARANG_STREAM_ORIGIN = 'https://livepantau.semarangkota.go.id/';
+
+/**
+ * Kota Semarang: PANTAUSEMAR (pantausemar.semarangkota.go.id) server-renders its
+ * map points into `var cctvs = [...]`. A point carries the coordinates and one
+ * or more `links` — one per physical camera there — whose `url` is a Flussonic
+ * master playlist on livepantau.semarangkota.go.id. The portal splits its
+ * catalog across category pages, so each page is registered as its own pack and
+ * the merge step dedupes on the camera id.
+ * @param {string} html
+ * @returns {Array<object>}
+ */
+export function parseSemarangCameras(html) {
+  const text = String(html || '');
+  const marker = text.indexOf('var cctvs');
+  if (marker < 0) return [];
+  const raw = sliceJsonArray(text, marker);
+  if (!raw) return [];
+  let points;
+  try {
+    points = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  const cameras = [];
+  for (const point of Array.isArray(points) ? points : []) {
+    const lat = toNumber(point?.lat);
+    const lon = toNumber(point?.lng);
+    if (!inBounds(lat, lon, INDONESIA_BOUNDS)) continue;
+    const place = cleanText(point.owner_name);
+    for (const link of Array.isArray(point.links) ? point.links : []) {
+      const url = httpUrl(link?.url);
+      const id = cleanText(link?.id);
+      if (!id || !url.startsWith(SEMARANG_STREAM_ORIGIN) || !isHlsUrl(url)) continue;
+      const agency = cleanText(link.owner_name);
+      const name = cleanText(link.name) || place;
+      cameras.push(cameraRecord({
+        id: `semarang-${id}`,
+        name: name && place && name !== place ? `${place} · ${name}` : (name || place || 'CCTV Semarang'),
+        city: 'Semarang',
+        cityId: 'semarang',
+        provider: agency ? `Pemerintah Kota Semarang (${agency})` : 'Pemerintah Kota Semarang',
+        lat,
+        lon,
+        groundElevationM: 10,
+        feedType: 'hls',
+        url,
+        sourceKind: 'id-semarang',
+        license: 'Public CCTV, Diskominfo Kota Semarang (pantausemar.semarangkota.go.id)',
+      }));
+    }
+  }
+  return cameras;
+}
+
+const SIDOARJO_ANCHOR = 'cctvData = JSON.parse(';
+const SIDOARJO_ORIGIN = 'https://pantaulalindishub.sidoarjokab.go.id';
+
+/**
+ * Kabupaten Sidoarjo: 'Pantau Embong' inlines its catalog as
+ * `const cctvData = JSON.parse('[…]')`. Each record's `video_src` is an internal
+ * address (127.0.0.1:3000) that is only reachable through the portal's own
+ * base64 proxy — exactly what its own player does — so the public playlist URL
+ * is /proxy?url=<base64 of video_src>. Records the portal hides
+ * (`visible: false`) and records without coordinates are skipped.
+ * @param {string} html
+ * @returns {Array<object>}
+ */
+export function parseSidoarjoCameras(html) {
+  const text = String(html || '');
+  const marker = text.indexOf(SIDOARJO_ANCHOR);
+  if (marker < 0) return [];
+  const quote = text.indexOf("'", marker);
+  const close = quote < 0 ? -1 : text.indexOf("')", quote);
+  if (quote < 0 || close < 0) return [];
+  let list;
+  try {
+    list = JSON.parse(text.slice(quote + 1, close));
+  } catch {
+    return [];
+  }
+  const cameras = [];
+  for (const item of Array.isArray(list) ? list : []) {
+    if (item?.visible === false) continue;
+    const lat = toNumber(item?.latitude);
+    const lon = toNumber(item?.longitude);
+    const source = String(item?.video_src || '');
+    const segments = source.split('/');
+    const slug = source.endsWith('.m3u8') && segments.length > 1 ? cleanText(segments[segments.length - 2]) : '';
+    if (!slug || !inBounds(lat, lon, INDONESIA_BOUNDS)) continue;
+    const name = cleanText(item.nama, 'CCTV Sidoarjo');
+    const street = cleanText(item.jalan);
+    cameras.push(cameraRecord({
+      id: `sidoarjo-${slug}`,
+      name: street && !name.includes(street) ? `${name} · ${street}` : name,
+      city: 'Sidoarjo',
+      cityId: 'sidoarjo',
+      provider: 'Dinas Perhubungan Kabupaten Sidoarjo',
+      lat,
+      lon,
+      groundElevationM: 5,
+      feedType: 'hls',
+      url: `${SIDOARJO_ORIGIN}/proxy?url=${btoa(source)}`,
+      sourceKind: 'id-sidoarjo',
+      license: 'Public CCTV, Dinas Perhubungan Kabupaten Sidoarjo (pantaulalindishub.sidoarjokab.go.id)',
+    }));
+  }
+  return cameras;
+}
+
 export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'yogyakarta', url: 'https://cctv.jogjakota.go.id/home/getdata', kind: 'json', referer: 'https://cctv.jogjakota.go.id/', xhr: true, parse: parseYogyakartaCameras },
   { id: 'bandung', url: 'https://pelindung.bandung.go.id:8443/api/cek', kind: 'json', referer: 'https://pelindung.bandung.go.id/', parse: parseBandungCameras },
@@ -483,6 +621,13 @@ export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'salatiga', url: 'https://cctv.salatiga.go.id/', kind: 'text', parse: parseSalatigaCameras },
   { id: 'bengkulu', url: 'https://cctv.bengkulukota.go.id/', kind: 'text', parse: parseBengkuluCameras },
   { id: 'banjarmasin', url: 'https://cctv.banjarmasinkota.go.id/api/maps/get', kind: 'json', referer: 'https://cctv.banjarmasinkota.go.id/', xhr: true, parse: parseBanjarmasinCameras },
+  // PANTAUSEMAR splits its catalog across category pages; these two carry the
+  // agency-operated cameras (Dishub, DPU, Diskominfo). The kecamatan category
+  // holds ~1,890 more that would not fit the catalog cap, so it is deliberately
+  // left out — see docs/INDONESIA-DATA-SOURCES.md.
+  { id: 'semarang', url: 'https://pantausemar.semarangkota.go.id/', kind: 'text', referer: 'https://pantausemar.semarangkota.go.id/', parse: parseSemarangCameras },
+  { id: 'semarang-dpu', url: 'https://pantausemar.semarangkota.go.id/?cctv_category_id=5b5b7e51-3a2e-446f-8fae-50d8e9e7196d', kind: 'text', referer: 'https://pantausemar.semarangkota.go.id/', parse: parseSemarangCameras },
+  { id: 'sidoarjo', url: 'https://pantaulalindishub.sidoarjokab.go.id/', kind: 'text', referer: 'https://pantaulalindishub.sidoarjokab.go.id/', parse: parseSidoarjoCameras },
 ]);
 
 /** Government open-data snapshot feeds outside Indonesia. */

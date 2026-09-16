@@ -136,8 +136,10 @@ export const DATA_CREDITS = [
       '<a href="https://cctv.bandaacehkota.go.id" target="_blank" rel="noopener">Banda Aceh</a> (CC BY 4.0), ' +
       '<a href="https://cctv.palembang.go.id" target="_blank" rel="noopener">Palembang</a>, ' +
       '<a href="https://cctv.salatiga.go.id" target="_blank" rel="noopener">Salatiga</a>, ' +
-      '<a href="https://cctv.bengkulukota.go.id" target="_blank" rel="noopener">Bengkulu</a> and ' +
-      '<a href="https://cctv.banjarmasinkota.go.id" target="_blank" rel="noopener">Banjarmasin</a>',
+      '<a href="https://cctv.bengkulukota.go.id" target="_blank" rel="noopener">Bengkulu</a>, ' +
+      '<a href="https://cctv.banjarmasinkota.go.id" target="_blank" rel="noopener">Banjarmasin</a>, ' +
+      '<a href="https://pantausemar.semarangkota.go.id" target="_blank" rel="noopener">Semarang</a> and ' +
+      '<a href="https://pantaulalindishub.sidoarjokab.go.id" target="_blank" rel="noopener">Sidoarjo</a>',
   },
   {
     key: 'hk-td-cctv',

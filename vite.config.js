@@ -3530,7 +3530,7 @@ const DEFAULT_AUSTIN_ROWS_URL = 'https://data.austintexas.gov/api/views/b4k4-adk
 const DEFAULT_AUSTIN_MAX_SOURCES = 250;
 /** Global cap on total CCTV sources served by the proxy. Indonesian packs load
  * first, so the cap trims international snapshot feeds before them. */
-const DEFAULT_CCTV_MAX_SOURCES = 3200;
+const DEFAULT_CCTV_MAX_SOURCES = 3600;
 /** Hard ceiling for CCTV_MAX_SOURCES. */
 const CCTV_MAX_SOURCES_CEILING = 4000;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
@@ -4536,7 +4536,12 @@ async function handleCctvHlsRequest(res, url, sourceById, setHealth) {
 
   const contentType = upstream.headers.get('content-type') || '';
   const playlistPath = /\.m3u8$/i.test(new URL(finalUrl).pathname);
-  if (contentType.toLowerCase().includes('mpegurl') || playlistPath) {
+  // A camera registered as HLS answers its ROOT url with a playlist even when
+  // the portal mislabels it — some city portals proxy the playlist through an
+  // endpoint that has no .m3u8 in the path and replies text/html. Treating the
+  // root as a playlist lets those be rewritten; looksLikeHlsPlaylist below
+  // still rejects anything that is not actually a playlist.
+  if (contentType.toLowerCase().includes('mpegurl') || playlistPath || isRoot) {
     let text;
     try {
       text = await readResponseTextCapped(upstream, CCTV_HLS_PLAYLIST_MAX_BYTES);

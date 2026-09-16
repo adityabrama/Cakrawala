@@ -13,6 +13,8 @@ import {
   parseHongKongCameras,
   parsePalembangCameras,
   parseSalatigaCameras,
+  parseSemarangCameras,
+  parseSidoarjoCameras,
   parseSingaporeCameras,
   parseYogyakartaCameras,
 } from './cctvPacks.js';
@@ -192,4 +194,54 @@ test('a pack that is down serves its cached catalog and a good fetch refreshes t
   const broken = { read: async () => { throw new Error('disk'); }, write: async () => { throw new Error('disk'); } };
   const survived = await loadCctvPacks(packs.slice(0, 2), { fetchImpl, cache: broken, log: { log() {}, warn() {} } });
   assert.deepEqual(survived.map((camera) => camera.id), ['fresh']);
+});
+
+test('Semarang flattens map points into one camera per published link', () => {
+  const BS = String.fromCharCode(92);
+  const html = [
+    '<html><script>',
+    'var cctvs = [',
+    '{"cctv_id":414,"owner_name":"KYAI SALEH","lat":"-6.986660206981591","lng":"110.41393529540247","links":[',
+    '{"id":307,"name":"KYAI SALEH","owner_name":"DINAS PERHUBUNGAN KOTA SEMARANG","url":"https://livepantau.semarangkota.go.id/ba20c7a2-f499-48c4-af4f-815068f678a0/index.m3u8","status":1},',
+    '{"id":308,"name":"KYAI SALEH [selatan]","owner_name":"DPU KOTA SEMARANG","url":"https://livepantau.semarangkota.go.id/162c2b72-d3a6-490e-b15e-eca621897f3b/index.m3u8","status":1},',
+    '{"id":309,"name":"Elsewhere","owner_name":"X","url":"https://youtube.com/watch?v=x","status":1}]},',
+    '{"cctv_id":9,"owner_name":"OUT OF BOUNDS","lat":"51.5","lng":"-0.12","links":[',
+    '{"id":900,"name":"London","owner_name":"X","url":"https://livepantau.semarangkota.go.id/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/index.m3u8","status":1}]}',
+    '];</script></html>',
+  ].join('');
+  const cameras = parseSemarangCameras(html);
+  assert.deepEqual(cameras.map((camera) => camera.id), ['semarang-307', 'semarang-308']);
+  assert.equal(cameras[0].city, 'Semarang');
+  assert.equal(cameras[0].cityId, 'semarang');
+  assert.equal(cameras[0].feedType, 'hls');
+  assert.equal(cameras[0].provider, 'Pemerintah Kota Semarang (DINAS PERHUBUNGAN KOTA SEMARANG)');
+  assert.equal(cameras[0].name, 'KYAI SALEH');
+  // A bracket inside a camera name must not end the array slice early.
+  assert.equal(cameras[1].name, 'KYAI SALEH · KYAI SALEH [selatan]');
+  assert.equal(Math.round(cameras[0].lat * 1000) / 1000, -6.987);
+  assert.equal(parseSemarangCameras('<html>no catalog here</html>').length, 0);
+  assert.ok(BS);
+});
+
+test('Sidoarjo routes its internal stream through the portal proxy and honours visibility', () => {
+  const BS = String.fromCharCode(92);
+  const escaped = 'http:' + BS + '/' + BS + '/127.0.0.1:3000/192_168_100_11/output.m3u8';
+  const records = [
+    '{"nama":"SIMPANG 4 SERUNI C1","jalan":"","status_online":true,"video_src":"' + escaped + '","latitude":-7.399408,"longitude":112.727162,"visible":true}',
+    '{"nama":"GAJAHMADA ARAH UTARA","jalan":"Jalan Gajah Mada","status_online":false,"video_src":"http://127.0.0.1:3000/192_168_100_15/output.m3u8","latitude":-7.456800,"longitude":112.717500,"visible":true}',
+    '{"nama":"HIDDEN","jalan":"","status_online":true,"video_src":"http://127.0.0.1:3000/192_168_100_20/output.m3u8","latitude":-7.4,"longitude":112.7,"visible":false}',
+    '{"nama":"NO COORDS","jalan":"","status_online":true,"video_src":"http://127.0.0.1:3000/192_168_100_21/output.m3u8","latitude":null,"longitude":null,"visible":true}',
+  ].join(',');
+  const html = "<script>const cctvData = JSON.parse('[" + records + "]');</script>";
+  const cameras = parseSidoarjoCameras(html);
+  assert.deepEqual(cameras.map((camera) => camera.id), ['sidoarjo-192_168_100_11', 'sidoarjo-192_168_100_15']);
+  assert.equal(cameras[0].city, 'Sidoarjo');
+  assert.equal(cameras[0].feedType, 'hls');
+  assert.equal(
+    cameras[0].url,
+    'https://pantaulalindishub.sidoarjokab.go.id/proxy?url=' + btoa('http://127.0.0.1:3000/192_168_100_11/output.m3u8'),
+    'the escaped inline URL decodes before it is base64-encoded for the portal proxy',
+  );
+  assert.equal(cameras[1].name, 'GAJAHMADA ARAH UTARA · Jalan Gajah Mada');
+  assert.equal(parseSidoarjoCameras('<html>nothing</html>').length, 0);
 });

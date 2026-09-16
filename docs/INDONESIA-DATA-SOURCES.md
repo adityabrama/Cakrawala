@@ -77,3 +77,52 @@ prefix while `provinces.geojson` is absent.
 Only public geography, public infrastructure, official bulletins, aggregate
 statistics, and public news metadata are collected. No source here
 identifies people; GDELT rows carry headline, outlet, and link only.
+
+## Public CCTV portals
+
+The CCTV layer's Indonesian packs are registered in `src/data/cctvPacks.js`
+(`INDONESIA_CCTV_PACKS`). Each pack is fetched independently and its last good
+catalog is cached under `.gev-intel/cctv-catalog/`, so one portal being down
+never removes the others.
+
+| Pack | Portal | Cameras | Notes |
+| --- | --- | --- | --- |
+| `yogyakarta` | cctv.jogjakota.go.id | ~154 | Public cameras only (`cctv_status` 0) |
+| `bandung` | pelindung.bandung.go.id | ~449 | Largest single pack |
+| `banda-aceh` | cctv.bandaacehkota.go.id | ~45 | Streams are CC BY 4.0 |
+| `palembang` | cctv.palembang.go.id | ~30 | Public-scope, active only |
+| `salatiga` | cctv.salatiga.go.id | ~34 | Stream needs the portal `Referer` |
+| `bengkulu` | cctv.bengkulukota.go.id | ~25 | Stream URL redirects to fMP4 |
+| `banjarmasin` | cctv.banjarmasinkota.go.id | ~25 | Stream needs the portal `Referer` |
+| `semarang`, `semarang-dpu` | pantausemar.semarangkota.go.id | ~126 | See below |
+| `sidoarjo` | pantaulalindishub.sidoarjokab.go.id | ~44 | See below |
+
+**Semarang** publishes 2,036 cameras across eight category pages. The two
+registered packs carry the agency-operated cameras (Dinas Perhubungan, DPU,
+Diskominfo). The `78076941-…` category holds another ~1,890 kecamatan cameras;
+they are deliberately left out because they alone would exceed
+`DEFAULT_CCTV_MAX_SOURCES` and push other cities out of the catalog. Add that
+page as a tenth pack and raise the cap if you want them.
+
+**Sidoarjo** stores each camera's `video_src` as an internal address
+(`http://127.0.0.1:3000/…`). Only the portal's own base64 proxy can serve it,
+which is exactly what its player does, so the pack registers
+`/proxy?url=<base64 of video_src>`. That endpoint answers `text/html` for both
+playlists and segments; the app's HLS proxy treats a registered HLS camera's
+root response as its playlist and validates the body, so the mislabelled type
+does not matter.
+
+### Checked and not integrated
+
+| Source | Result | Decision |
+| --- | --- | --- |
+| DKI Jakarta — jakcctv.jakarta.go.id/publik | 46 cameras, streams verified working (`dki-jkt.balitower.co.id:7028/<id>/index.m3u8` returns `#EXTM3U`) but the page publishes **no coordinates** | Held: a camera needs a real position, and guessing one from the street name in the id would be fabricated data |
+| DKI Jakarta — Jakarta Satu ArcGIS `Hosted/CCTV/FeatureServer/0` | 111 DSDA flood cameras **with** coordinates, but every `link_live` points at `103.140.108.110`, which is unreachable from the public internet | Held: no reachable stream |
+| Surabaya — dishub.surabaya.go.id | No public catalog and no stream page; SITS is only exposed through its Android app | Rejected |
+| Gresik — testing-apicctv.gresikkab.go.id | 95 cameras with coordinates and working HLS, but the same API returns `rtspUrl` values containing camera admin credentials | Not integrated: the app will not build on an endpoint that leaks credentials |
+
+Note for anyone probing these portals from Indonesia: some ISP resolvers answer
+with a parking address (for example `10.221.39.164`) for hostnames that do not
+exist *and* for some that do, which makes a working portal look dead. Resolve
+through DNS-over-HTTPS and force the address with `curl --resolve` before
+concluding that a source is down.
