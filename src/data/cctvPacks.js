@@ -613,6 +613,96 @@ export function parseSidoarjoCameras(html) {
   return cameras;
 }
 
+/**
+ * Kota Pekalongan: the portal's `/api/config` describes stream groups, each with
+ * one or more channels. Only channels the portal marks public (`public === 1`)
+ * are kept — the rest are internal office cameras on a LAN.
+ *
+ * The same payload also carries an internal RTSP `url` per camera with
+ * credentials in it. This parser never reads that field, and nothing
+ * downstream ever sees it.
+ * @param {{streams?: object}} payload
+ * @returns {Array<object>}
+ */
+export function parsePekalonganCameras(payload) {
+  const streams = payload?.streams;
+  if (!streams || typeof streams !== 'object') return [];
+  const cameras = [];
+  for (const [uuid, group] of Object.entries(streams)) {
+    const channels = group?.channels;
+    if (!uuid || !channels || typeof channels !== 'object') continue;
+    for (const [channel, camera] of Object.entries(channels)) {
+      if (camera?.public !== 1) continue;
+      const lat = toNumber(camera.latitude);
+      const lon = toNumber(camera.longitude);
+      if (!inBounds(lat, lon, INDONESIA_BOUNDS)) continue;
+      const name = cleanText(camera.name) || cleanText(group.name, 'CCTV Pekalongan');
+      cameras.push(cameraRecord({
+        id: `pekalongan-${uuid}-${channel}`,
+        name,
+        city: 'Pekalongan',
+        cityId: 'pekalongan',
+        provider: 'Pemerintah Kota Pekalongan (Diskominfo)',
+        lat,
+        lon,
+        groundElevationM: 3,
+        feedType: 'hls',
+        url: `https://cctv.pekalongankota.go.id/stream/${uuid}/channel/${channel}/hls/live/index.m3u8`,
+        sourceKind: 'id-pekalongan',
+        license: 'Public CCTV, Pemerintah Kota Pekalongan (cctv.pekalongankota.go.id)',
+      }));
+    }
+  }
+  return cameras;
+}
+
+const DEPOK_ANCHOR = 'dataCCTV = ';
+
+/**
+ * Kota Depok: Dishub inlines its camera list as `var dataCCTV = [...]`. The
+ * stream name is the camera's address with the dots removed, exactly as the
+ * portal's own player builds it. Cameras the portal reports as absent
+ * (`exists !== 1`) are skipped; several longitude values carry a leading space.
+ * @param {string} html
+ * @returns {Array<object>}
+ */
+export function parseDepokCameras(html) {
+  const text = String(html || '');
+  const marker = text.indexOf(DEPOK_ANCHOR);
+  if (marker < 0) return [];
+  const raw = sliceJsonArray(text, marker);
+  if (!raw) return [];
+  let list;
+  try {
+    list = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  const cameras = [];
+  for (const item of Array.isArray(list) ? list : []) {
+    if (item?.exists !== 1) continue;
+    const lat = toNumber(String(item.latitude || '').trim());
+    const lon = toNumber(String(item.longitude || '').trim());
+    const slug = String(item.ip || '').split('.').join('');
+    if (!slug || !inBounds(lat, lon, INDONESIA_BOUNDS)) continue;
+    cameras.push(cameraRecord({
+      id: `depok-${slug}`,
+      name: cleanText(item.nama_cctv, 'CCTV Depok'),
+      city: 'Depok',
+      cityId: 'depok',
+      provider: 'Dinas Perhubungan Kota Depok',
+      lat,
+      lon,
+      groundElevationM: 90,
+      feedType: 'hls',
+      url: `https://dishub.depok.go.id/vi/${slug}.m3u8`,
+      sourceKind: 'id-depok',
+      license: 'Public CCTV, Dinas Perhubungan Kota Depok (dishub.depok.go.id)',
+    }));
+  }
+  return cameras;
+}
+
 export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'yogyakarta', url: 'https://cctv.jogjakota.go.id/home/getdata', kind: 'json', referer: 'https://cctv.jogjakota.go.id/', xhr: true, parse: parseYogyakartaCameras },
   { id: 'bandung', url: 'https://pelindung.bandung.go.id:8443/api/cek', kind: 'json', referer: 'https://pelindung.bandung.go.id/', parse: parseBandungCameras },
@@ -628,6 +718,8 @@ export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'semarang', url: 'https://pantausemar.semarangkota.go.id/', kind: 'text', referer: 'https://pantausemar.semarangkota.go.id/', parse: parseSemarangCameras },
   { id: 'semarang-dpu', url: 'https://pantausemar.semarangkota.go.id/?cctv_category_id=5b5b7e51-3a2e-446f-8fae-50d8e9e7196d', kind: 'text', referer: 'https://pantausemar.semarangkota.go.id/', parse: parseSemarangCameras },
   { id: 'sidoarjo', url: 'https://pantaulalindishub.sidoarjokab.go.id/', kind: 'text', referer: 'https://pantaulalindishub.sidoarjokab.go.id/', parse: parseSidoarjoCameras },
+  { id: 'pekalongan', url: 'https://cctv.pekalongankota.go.id/api/config', kind: 'json', parse: parsePekalonganCameras },
+  { id: 'depok', url: 'https://dishub.depok.go.id/cctv', kind: 'text', parse: parseDepokCameras },
 ]);
 
 /** Government open-data snapshot feeds outside Indonesia. */

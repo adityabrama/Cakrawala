@@ -12,6 +12,8 @@ import {
   parseDigitrafficCameras,
   parseHongKongCameras,
   parsePalembangCameras,
+  parseDepokCameras,
+  parsePekalonganCameras,
   parseSalatigaCameras,
   parseSemarangCameras,
   parseSidoarjoCameras,
@@ -244,4 +246,43 @@ test('Sidoarjo routes its internal stream through the portal proxy and honours v
   );
   assert.equal(cameras[1].name, 'GAJAHMADA ARAH UTARA · Jalan Gajah Mada');
   assert.equal(parseSidoarjoCameras('<html>nothing</html>').length, 0);
+});
+
+test('Pekalongan keeps public channels only and never touches the RTSP field', () => {
+  const cameras = parsePekalonganCameras({
+    streams: {
+      '089e9315-6dd5-4d33-a8eb-cd9b164cff32': {
+        category: 'atcs',
+        name: 'Simpang Dr. Cipto',
+        channels: {
+          0: { name: 'ATCS Simpang Dr. Cipto PTZ', latitude: '-6.8897', longitude: '109.678', public: 1, url: 'rtsp://admin:secret@10.28.1.5:554/stream' },
+          1: { name: '', latitude: '-6.8897', longitude: '109.6771', public: 1 },
+          2: { name: 'Parkir Depan Kominfo', latitude: '-6.88', longitude: '109.67', public: 0, url: 'rtsp://admin:secret@172.20.1.9:554/stream' },
+          3: { name: 'No coordinates', latitude: '', longitude: '', public: 1 },
+        },
+      },
+    },
+  });
+  assert.deepEqual(cameras.map((camera) => camera.id), [
+    'pekalongan-089e9315-6dd5-4d33-a8eb-cd9b164cff32-0',
+    'pekalongan-089e9315-6dd5-4d33-a8eb-cd9b164cff32-1',
+  ]);
+  assert.equal(cameras[1].name, 'Simpang Dr. Cipto', 'an empty channel name falls back to the group name');
+  assert.equal(cameras[0].url, 'https://cctv.pekalongankota.go.id/stream/089e9315-6dd5-4d33-a8eb-cd9b164cff32/channel/0/hls/live/index.m3u8');
+  assert.doesNotMatch(JSON.stringify(cameras), /rtsp|secret/i, 'the credentialed RTSP url never reaches a camera record');
+  assert.equal(parsePekalonganCameras({}).length, 0);
+});
+
+test('Depok builds its stream name from the address and trims padded coordinates', () => {
+  const html = '<script>var dataCCTV = ['
+    + '{"exists":1,"ip":"20.22.80.25","nama_cctv":"SP KSU TOLE ISKANDAR 2","latitude":"-6.4042727","longitude":"106.8385257","status_on":"1"},'
+    + '{"exists":1,"ip":"20.22.80.13","nama_cctv":"SP PEKAPURAN 2","latitude":"-6.385598","longitude":" 106.867381","status_on":"1"},'
+    + '{"exists":0,"ip":"20.22.80.9","nama_cctv":"Absent","latitude":"-6.38","longitude":"106.86","status_on":"1"}'
+    + '];</script>';
+  const cameras = parseDepokCameras(html);
+  assert.deepEqual(cameras.map((camera) => camera.id), ['depok-20228025', 'depok-20228013']);
+  assert.equal(cameras[0].url, 'https://dishub.depok.go.id/vi/20228025.m3u8');
+  assert.equal(cameras[1].lon, 106.867381, 'a leading space in the longitude is trimmed');
+  assert.equal(cameras[0].city, 'Depok');
+  assert.equal(parseDepokCameras('<html></html>').length, 0);
 });

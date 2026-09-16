@@ -139,7 +139,9 @@ export const DATA_CREDITS = [
       '<a href="https://cctv.bengkulukota.go.id" target="_blank" rel="noopener">Bengkulu</a>, ' +
       '<a href="https://cctv.banjarmasinkota.go.id" target="_blank" rel="noopener">Banjarmasin</a>, ' +
       '<a href="https://pantausemar.semarangkota.go.id" target="_blank" rel="noopener">Semarang</a> and ' +
-      '<a href="https://pantaulalindishub.sidoarjokab.go.id" target="_blank" rel="noopener">Sidoarjo</a>',
+      '<a href="https://pantaulalindishub.sidoarjokab.go.id" target="_blank" rel="noopener">Sidoarjo</a>, ' +
+      '<a href="https://cctv.pekalongankota.go.id" target="_blank" rel="noopener">Pekalongan</a> and ' +
+      '<a href="https://dishub.depok.go.id/cctv" target="_blank" rel="noopener">Depok</a>',
   },
   {
     key: 'hk-td-cctv',

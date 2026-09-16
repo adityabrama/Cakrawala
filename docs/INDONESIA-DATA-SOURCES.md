@@ -96,6 +96,8 @@ never removes the others.
 | `banjarmasin` | cctv.banjarmasinkota.go.id | ~25 | Stream needs the portal `Referer` |
 | `semarang`, `semarang-dpu` | pantausemar.semarangkota.go.id | ~126 | See below |
 | `sidoarjo` | pantaulalindishub.sidoarjokab.go.id | ~44 | See below |
+| `pekalongan` | cctv.pekalongankota.go.id | ~44 | `/api/config`; only channels flagged `public: 1` |
+| `depok` | dishub.depok.go.id/cctv | ~53 | Stream name is the camera address without dots |
 
 **Semarang** publishes 2,036 cameras across eight category pages. The two
 registered packs carry the agency-operated cameras (Dinas Perhubungan, DPU,
@@ -103,6 +105,8 @@ Diskominfo). The `78076941-…` category holds another ~1,890 kecamatan cameras;
 they are deliberately left out because they alone would exceed
 `DEFAULT_CCTV_MAX_SOURCES` and push other cities out of the catalog. Add that
 page as a tenth pack and raise the cap if you want them.
+
+**Pekalongan** ships each camera internal RTSP address, credentials included, in the same /api/config payload. The parser reads only name, coordinates and the public flag, so that field never reaches a camera record (a unit test asserts it).
 
 **Sidoarjo** stores each camera's `video_src` as an internal address
 (`http://127.0.0.1:3000/…`). Only the portal's own base64 proxy can serve it,
