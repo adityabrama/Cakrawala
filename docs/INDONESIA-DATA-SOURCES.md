@@ -98,6 +98,7 @@ never removes the others.
 | `sidoarjo` | pantaulalindishub.sidoarjokab.go.id | ~44 | See below |
 | `pekalongan` | cctv.pekalongankota.go.id | ~44 | `/api/config`; only channels flagged `public: 1` |
 | `depok` | dishub.depok.go.id/cctv | ~53 | Stream name is the camera address without dots |
+| `bpjt-jabodetabek` | bpjt.pu.go.id/cctv | ~469 | Toll-road cameras around Jakarta; see below |
 
 **Semarang** publishes 2,036 cameras across eight category pages. The two
 registered packs carry the agency-operated cameras (Dinas Perhubungan, DPU,
@@ -107,6 +108,25 @@ they are deliberately left out because they alone would exceed
 page as a tenth pack and raise the cap if you want them.
 
 **Pekalongan** ships each camera internal RTSP address, credentials included, in the same /api/config payload. The parser reads only name, coordinates and the public flag, so that field never reaches a camera record (a unit test asserts it).
+
+**BPJT** (Badan Pengatur Jalan Tol, Kementerian PU) embeds `const allStreams = {…}`
+covering 1,530 cameras on 82 toll roads, each with an absolute playlist URL on
+its concessionaire's host. The registered pack keeps the ~469 inside the
+Jabodetabek envelope — the toll network through Jakarta, Bogor, Depok,
+Tangerang and Bekasi, including Dalam Kota, JORR, Sedyatmo, Jakarta-Cikampek
+and the MBZ elevated road. Set `CCTV_BPJT_NATIONAL=1` to load the national set
+(~1,065 cameras) instead; raise `CCTV_MAX_SOURCES` with it or other cities are
+trimmed. Rows the page reports offline, rows at 0/0, and rows whose `protocol`
+claims m3u8 while pointing at an MJPEG endpoint are dropped.
+
+Stream health varies by concessionaire: from the test network
+`jmlive.jasamarga.com` (253 of the Jabodetabek cameras) answered HTTP 200 with
+an empty body, and `stream.bsdtol.com`, `cctv.cctvdesari.online` and
+`cijagolive.app-intracs.co.id` were unreachable, while `pub2.hk-opt.com`,
+`streaming-cct.co.id` and `cctv.mms-corp.id` served valid playlists. Those
+hosts are kept in the catalog rather than filtered out — they are what BPJT
+publishes as online, the same ISP that poisons DNS here may be the cause, and
+the per-camera health chip already reports an unusable feed.
 
 **Sidoarjo** stores each camera's `video_src` as an internal address
 (`http://127.0.0.1:3000/…`). Only the portal's own base64 proxy can serve it,
@@ -123,6 +143,8 @@ does not matter.
 | DKI Jakarta — jakcctv.jakarta.go.id/publik | 46 cameras, streams verified working (`dki-jkt.balitower.co.id:7028/<id>/index.m3u8` returns `#EXTM3U`) but the page publishes **no coordinates** | Held: a camera needs a real position, and guessing one from the street name in the id would be fabricated data |
 | DKI Jakarta — Jakarta Satu ArcGIS `Hosted/CCTV/FeatureServer/0` | 111 DSDA flood cameras **with** coordinates, but every `link_live` points at `103.140.108.110`, which is unreachable from the public internet | Held: no reachable stream |
 | Surabaya — dishub.surabaya.go.id | No public catalog and no stream page; SITS is only exposed through its Android app | Rejected |
+| DI Yogyakarta province — cctv.jogjaprov.go.id/api/v1/location-pins | 973 cameras, 598 with coordinates, streams verified; a 2.7 MB JSON:API catalog | Available, not enabled: it would need the catalog cap raised again |
+| Kabupaten Gresik — testing-apicctv.gresikkab.go.id | 95 cameras with coordinates and working HLS | Not integrated: the same API returns `rtspUrl` values with camera admin credentials |
 | Gresik — testing-apicctv.gresikkab.go.id | 95 cameras with coordinates and working HLS, but the same API returns `rtspUrl` values containing camera admin credentials | Not integrated: the app will not build on an endpoint that leaks credentials |
 
 Note for anyone probing these portals from Indonesia: some ISP resolvers answer

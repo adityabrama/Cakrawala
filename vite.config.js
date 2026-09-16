@@ -3530,7 +3530,7 @@ const DEFAULT_AUSTIN_ROWS_URL = 'https://data.austintexas.gov/api/views/b4k4-adk
 const DEFAULT_AUSTIN_MAX_SOURCES = 250;
 /** Global cap on total CCTV sources served by the proxy. Indonesian packs load
  * first, so the cap trims international snapshot feeds before them. */
-const DEFAULT_CCTV_MAX_SOURCES = 3600;
+const DEFAULT_CCTV_MAX_SOURCES = 3900;
 /** Hard ceiling for CCTV_MAX_SOURCES. */
 const CCTV_MAX_SOURCES_CEILING = 4000;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
@@ -4270,6 +4270,17 @@ const cctvCatalogCache = {
   },
 };
 
+// BPJT publishes every toll road in the country; only one of its two packs
+// loads (they share a URL, so this never fetches the page twice). Jabodetabek
+// is the default — the national set is large enough to crowd other cities out
+// of the catalog unless CCTV_MAX_SOURCES is raised with it.
+function indonesiaPackEnabled(packId) {
+  const national = String(process.env.CCTV_BPJT_NATIONAL || '').trim() === '1';
+  if (packId === 'bpjt-national') return national;
+  if (packId === 'bpjt-jabodetabek') return !national;
+  return true;
+}
+
 async function refreshCctvSources() {
   const fromFile = loadSourcesFromFile();
   const fromEnv = loadSourcesFromEnv();
@@ -4294,7 +4305,7 @@ async function refreshCctvSources() {
       loadAustinSourcesFromOpenData(),
       loadCaltransSourcesFromOpenData(),
       tflEnabled ? loadTflSourcesFromOpenData() : Promise.resolve([]),
-      indonesiaEnabled ? loadCctvPacks(INDONESIA_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS, cache: cctvCatalogCache }) : Promise.resolve([]),
+      indonesiaEnabled ? loadCctvPacks(INDONESIA_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS, cache: cctvCatalogCache, isEnabled: indonesiaPackEnabled }) : Promise.resolve([]),
       internationalEnabled ? loadCctvPacks(INTERNATIONAL_CCTV_PACKS, { timeoutMs: CCTV_SOURCE_FETCH_TIMEOUT_MS, cache: cctvCatalogCache }) : Promise.resolve([]),
     ]);
     fromAustin = austinResult.status === 'fulfilled' ? austinResult.value : [];

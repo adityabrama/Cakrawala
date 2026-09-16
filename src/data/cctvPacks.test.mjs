@@ -12,6 +12,7 @@ import {
   parseDigitrafficCameras,
   parseHongKongCameras,
   parsePalembangCameras,
+  parseBpjtCameras,
   parseDepokCameras,
   parsePekalonganCameras,
   parseSalatigaCameras,
@@ -236,7 +237,7 @@ test('Sidoarjo routes its internal stream through the portal proxy and honours v
   ].join(',');
   const html = "<script>const cctvData = JSON.parse('[" + records + "]');</script>";
   const cameras = parseSidoarjoCameras(html);
-  assert.deepEqual(cameras.map((camera) => camera.id), ['sidoarjo-192_168_100_11', 'sidoarjo-192_168_100_15']);
+  assert.deepEqual(cameras.map((camera) => camera.id), ['sidoarjo-192_168_100_11', 'sidoarjo-192_168_100_15', 'sidoarjo-192_168_100_20'], 'a camera the portal hides still streams, so only coordinates gate');
   assert.equal(cameras[0].city, 'Sidoarjo');
   assert.equal(cameras[0].feedType, 'hls');
   assert.equal(
@@ -285,4 +286,25 @@ test('Depok builds its stream name from the address and trims padded coordinates
   assert.equal(cameras[1].lon, 106.867381, 'a leading space in the longitude is trimmed');
   assert.equal(cameras[0].city, 'Depok');
   assert.equal(parseDepokCameras('<html></html>').length, 0);
+});
+
+test('BPJT keeps online, geolocated https playlists inside the requested region', () => {
+  const html = '<script>const allStreams = {'
+    + '"jkt":[' 
+    + '{"id":"6591","nama_ruas":"Jakarta-Bogor-Ciawi","nama_segment":"CILILITAN - TM MINI","nama_km":"","status":"online","lat":"-6.2856","lon":"106.8771","protocol":"m3u8","streamhls":"https://jmlive.jasamarga.com/hls/1/abc/index.m3u8"},'
+    + '{"id":"70","nama_ruas":"Akses Tanjung Priok","nama_segment":"ATP GT KOJA","nama_km":"","status":"1","lat":"-6.1150","lon":"106.9000","protocol":"m3u8","streamhls":"https://pub2.hk-opt.com/LiveApp/streams/123.m3u8"},'
+    + '{"id":"71","nama_ruas":"Down","nama_segment":"Offline cam","status":"0","lat":"-6.2","lon":"106.9","streamhls":"https://pub2.hk-opt.com/LiveApp/streams/999.m3u8"},'
+    + '{"id":"72","nama_ruas":"Lying protocol","nama_segment":"MJPEG cam","status":"online","lat":"-6.2","lon":"106.9","protocol":"m3u8","streamhls":"http://36.91.214.108:4600/mjpg/video.mjpg"},'
+    + '{"id":"73","nama_ruas":"No fix","nama_segment":"Zero coords","status":"online","lat":"0","lon":"0","streamhls":"https://pub2.hk-opt.com/LiveApp/streams/777.m3u8"}],'
+    + '"sby":[{"id":"900","nama_ruas":"Surabaya-Gempol","nama_segment":"Waru","status":"online","lat":"-7.35","lon":"112.72","protocol":"m3u8","streamhls":"https://pub2.hk-opt.com/LiveApp/streams/555.m3u8"}]'
+    + '};</script>';
+  const jabodetabek = parseBpjtCameras(html);
+  assert.deepEqual(jabodetabek.map((camera) => camera.id), ['bpjt-6591', 'bpjt-70'], 'offline, MJPEG-behind-m3u8, null-island and out-of-region rows are dropped');
+  assert.equal(jabodetabek[0].name, 'Jakarta-Bogor-Ciawi · CILILITAN - TM MINI');
+  assert.equal(jabodetabek[0].city, 'Jalan Tol (Jabodetabek)');
+  assert.equal(jabodetabek[0].feedType, 'hls');
+  assert.equal(jabodetabek[0].url, 'https://jmlive.jasamarga.com/hls/1/abc/index.m3u8', 'the published playlist url is used verbatim');
+  const national = parseBpjtCameras(html, { bounds: { minLat: -11.5, maxLat: 6.5, minLon: 94.5, maxLon: 141.5 } });
+  assert.deepEqual(national.map((camera) => camera.id), ['bpjt-6591', 'bpjt-70', 'bpjt-900'], 'a wider envelope reaches the other toll roads');
+  assert.equal(parseBpjtCameras('<html></html>').length, 0);
 });

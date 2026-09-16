@@ -141,7 +141,8 @@ export const DATA_CREDITS = [
       '<a href="https://pantausemar.semarangkota.go.id" target="_blank" rel="noopener">Semarang</a> and ' +
       '<a href="https://pantaulalindishub.sidoarjokab.go.id" target="_blank" rel="noopener">Sidoarjo</a>, ' +
       '<a href="https://cctv.pekalongankota.go.id" target="_blank" rel="noopener">Pekalongan</a> and ' +
-      '<a href="https://dishub.depok.go.id/cctv" target="_blank" rel="noopener">Depok</a>',
+      '<a href="https://dishub.depok.go.id/cctv" target="_blank" rel="noopener">Depok</a>, and toll-road cameras of ' +
+      '<a href="https://bpjt.pu.go.id/cctv" target="_blank" rel="noopener">BPJT — Kementerian PU</a>',
   },
   {
     key: 'hk-td-cctv',

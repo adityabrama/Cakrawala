@@ -586,7 +586,8 @@ export function parseSidoarjoCameras(html) {
   }
   const cameras = [];
   for (const item of Array.isArray(list) ? list : []) {
-    if (item?.visible === false) continue;
+    // `visible` and `status_online` are stale portal display hints: cameras
+    // flagged offline were observed streaming live, so only coordinates gate.
     const lat = toNumber(item?.latitude);
     const lon = toNumber(item?.longitude);
     const source = String(item?.video_src || '');
@@ -703,6 +704,93 @@ export function parseDepokCameras(html) {
   return cameras;
 }
 
+/** Jabodetabek envelope: the toll network around Jakarta, Bogor, Depok, Tangerang and Bekasi. */
+const JABODETABEK_BOUNDS = Object.freeze({ minLat: -6.9, maxLat: -5.9, minLon: 106.3, maxLon: 107.3 });
+
+/** Slice a balanced {...} literal out of page source, ignoring braces inside strings. */
+function sliceJsonObject(text, from) {
+  const open = text.indexOf('{', from);
+  if (open < 0) return '';
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = open; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === BACKSLASH) escaped = true;
+      else if (ch === QUOTE) inString = false;
+      continue;
+    }
+    if (ch === QUOTE) inString = true;
+    else if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(open, i + 1);
+    }
+  }
+  return '';
+}
+
+/**
+ * BPJT (Badan Pengatur Jalan Tol, Kementerian PU): bpjt.pu.go.id/cctv embeds
+ * `const allStreams = { "<id_ruas>": [ … ] }` covering every toll road in the
+ * country. Each record already carries an absolute playlist URL on its
+ * concessionaire's host, so nothing is constructed here.
+ *
+ * Only cameras the page reports as up, with real coordinates and an https HLS
+ * playlist, are kept: the `protocol` field lies on a few dozen records that
+ * actually point at MJPEG endpoints. `bounds` narrows the set to one region —
+ * the registry ships Jabodetabek by default because the national set is large
+ * enough to crowd other cities out of the catalog.
+ * @param {string} html
+ * @param {{bounds?: {minLat:number,maxLat:number,minLon:number,maxLon:number}}} [options]
+ * @returns {Array<object>}
+ */
+export function parseBpjtCameras(html, { bounds = JABODETABEK_BOUNDS } = {}) {
+  const text = String(html || '');
+  const marker = text.indexOf('allStreams');
+  if (marker < 0) return [];
+  const raw = sliceJsonObject(text, marker);
+  if (!raw) return [];
+  let byRoad;
+  try {
+    byRoad = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  const cameras = [];
+  for (const records of Object.values(byRoad || {})) {
+    for (const item of Array.isArray(records) ? records : []) {
+      const status = String(item?.status || '');
+      if (status !== 'online' && status !== '1') continue;
+      const lat = toNumber(item.lat);
+      const lon = toNumber(item.lon);
+      const id = cleanText(item.id);
+      const url = httpUrl(item.streamhls || item.stream);
+      if (!id || !url.startsWith('https://') || !isHlsUrl(url)) continue;
+      if (lat === 0 || lon === 0 || !inBounds(lat, lon, INDONESIA_BOUNDS) || !inBounds(lat, lon, bounds)) continue;
+      const road = cleanText(item.nama_ruas);
+      const segment = cleanText(item.nama_segment) || cleanText(item.nama_km) || road;
+      cameras.push(cameraRecord({
+        id: `bpjt-${id}`,
+        name: road && segment !== road ? `${road} · ${segment}` : (segment || 'CCTV Tol'),
+        city: 'Jalan Tol (Jabodetabek)',
+        cityId: 'bpjt-jabodetabek',
+        provider: 'BPJT — Kementerian Pekerjaan Umum',
+        lat,
+        lon,
+        groundElevationM: 30,
+        feedType: 'hls',
+        url,
+        sourceKind: 'id-bpjt',
+        license: 'Public toll-road CCTV, BPJT Kementerian PU (bpjt.pu.go.id/cctv)',
+      }));
+    }
+  }
+  return cameras;
+}
+
 export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'yogyakarta', url: 'https://cctv.jogjakota.go.id/home/getdata', kind: 'json', referer: 'https://cctv.jogjakota.go.id/', xhr: true, parse: parseYogyakartaCameras },
   { id: 'bandung', url: 'https://pelindung.bandung.go.id:8443/api/cek', kind: 'json', referer: 'https://pelindung.bandung.go.id/', parse: parseBandungCameras },
@@ -720,6 +808,13 @@ export const INDONESIA_CCTV_PACKS = Object.freeze([
   { id: 'sidoarjo', url: 'https://pantaulalindishub.sidoarjokab.go.id/', kind: 'text', referer: 'https://pantaulalindishub.sidoarjokab.go.id/', parse: parseSidoarjoCameras },
   { id: 'pekalongan', url: 'https://cctv.pekalongankota.go.id/api/config', kind: 'json', parse: parsePekalonganCameras },
   { id: 'depok', url: 'https://dishub.depok.go.id/cctv', kind: 'text', parse: parseDepokCameras },
+  // BPJT covers every toll road in the country (1,062 usable cameras). The
+  // default pack keeps the Jabodetabek network — the closest thing to public
+  // Jakarta street cameras, which DKI itself publishes without coordinates.
+  // Set CCTV_BPJT_NATIONAL=1 to swap in the national set instead (raise
+  // CCTV_MAX_SOURCES with it).
+  { id: 'bpjt-jabodetabek', url: 'https://bpjt.pu.go.id/cctv/', kind: 'text', parse: (html) => parseBpjtCameras(html) },
+  { id: 'bpjt-national', url: 'https://bpjt.pu.go.id/cctv/', kind: 'text', parse: (html) => parseBpjtCameras(html, { bounds: INDONESIA_BOUNDS }) },
 ]);
 
 /** Government open-data snapshot feeds outside Indonesia. */
