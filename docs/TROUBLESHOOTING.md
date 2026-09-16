@@ -75,6 +75,12 @@ city whose portal is down shows placeholder monitors until it returns.
 
 ## Dev server
 
+**"Failed to fetch dynamically imported module … /deps/maplibre-gl.js" after a
+build.** `npm run build` (and `npm test`, which builds) empties
+`node_modules/.vite`, so a dev server that is already running serves 404s for
+every pre-bundled dependency it had handed out. Nothing is broken in the app:
+restart `npm run dev` (in Pinokio, Stop then Start).
+
 **`[vite] failed to connect to websocket` in the console.** Hot module
 reload cannot connect when the page is opened on `localhost` while the server
 listens on `127.0.0.1` (or the reverse). Open the URL Vite prints. The app
