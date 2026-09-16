@@ -57,6 +57,8 @@ export function parseEventQuery(searchParams) {
   const filter = {};
   const types = String(searchParams.get('types') || '').split(',').map((value) => value.trim()).filter(Boolean);
   if (types.length) filter.types = types;
+  const exclude = String(searchParams.get('exclude') || '').split(',').map((value) => value.trim()).filter(Boolean);
+  if (exclude.length) filter.excludeTypes = exclude;
   const statuses = String(searchParams.get('status') || '').split(',').map((value) => value.trim()).filter(Boolean);
   if (statuses.length) filter.statuses = statuses;
   const since = Date.parse(searchParams.get('since') || '');

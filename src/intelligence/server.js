@@ -146,6 +146,11 @@ export function createIntelEngine({
           entry.nextRunAt = nowMs + entry.provider.intervalMs;
         } else if (providerResult.state === 'not-configured') {
           entry.nextRunAt = nowMs + Math.max(entry.provider.intervalMs, 10 * 60_000);
+        } else if (providerResult.errorStatus === 429) {
+          // Rate limited (GDELT answers 429 often): retrying after a quarter
+          // of the cadence only extends the throttle, so wait at least a full
+          // cadence and never less than 30 minutes.
+          entry.nextRunAt = nowMs + Math.max(30 * 60_000, entry.provider.intervalMs);
         } else {
           // Back off failures: retry after a quarter of the cadence, at least 2 min.
           entry.nextRunAt = nowMs + Math.max(2 * 60_000, Math.round(entry.provider.intervalMs / 4));
@@ -212,6 +217,16 @@ export function createIntelEngine({
       license: entry.provider.license,
       sourceUrl: entry.provider.sourceUrl,
       runs: entry.runs,
+      // Multi-feed providers (the RSS news provider) report per-feed health;
+      // surface only the summary so one failing outlet is visible without
+      // turning the whole provider red.
+      feeds: Number.isFinite(entry.meta?.feedsTotal)
+        ? {
+          ok: entry.meta.feedsOk,
+          total: entry.meta.feedsTotal,
+          failing: (entry.meta.feeds || []).filter((feed) => feed.state === 'error' || feed.state === 'stale').map((feed) => ({ id: feed.id, outlet: feed.outlet, state: feed.state, error: feed.error })),
+        }
+        : null,
     }));
   }
 
@@ -227,6 +242,11 @@ export function createIntelEngine({
     const filter = { ...extra };
     if (scope.kind === 'province') filter.provinceCode = scope.code;
     else if (scope.bbox) filter.bbox = scope.bbox;
+    // The Indonesia scope is a bbox for positioned events, but an Indonesian
+    // event without a position (most news headlines, some BNPB rows) still
+    // belongs to it. Without this every unlocated headline vanished from the
+    // default /events read. A drawn bbox scope keeps excluding them.
+    if (scope.kind === 'indonesia') filter.unlocatedCountry = 'ID';
     return filter;
   }
 

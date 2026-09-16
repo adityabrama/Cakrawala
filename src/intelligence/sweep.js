@@ -72,6 +72,9 @@ export async function runProvider(provider, context, { timeoutMs = DEFAULT_PROVI
       metrics: {},
       meta: {},
       error: String(error?.message || error).slice(0, 300),
+      // HTTP status of the failing request when the provider's fetch helper
+      // reported one, so the engine can back off harder on 429.
+      errorStatus: Number.isInteger(error?.status) ? error.status : null,
     };
   } finally {
     clearTimeout(timer);

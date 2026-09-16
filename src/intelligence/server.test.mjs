@@ -141,4 +141,77 @@ test('parseScope and parseEventQuery validate every input', () => {
   assert.ok(Number.isFinite(filter.sinceMs));
   assert.equal(parseEventQuery(new URLSearchParams('severity=nope&limit=-1')).limit, 500);
   assert.equal(parseEventQuery(new URLSearchParams('bbox=100,-10,120,5')).scope, 'bbox:100,-10,120,5');
+  assert.deepEqual(parseEventQuery(new URLSearchParams('exclude=news,economy')).excludeTypes, ['news', 'economy']);
+  assert.equal(parseEventQuery(new URLSearchParams('types=news')).excludeTypes, undefined);
+});
+
+test('a flood of fresh headlines can never push older disaster events out of a capped read', async () => {
+  const news = Array.from({ length: 30 }, (_, index) => ({
+    id: `news-${index}`, type: 'news', timestamp: new Date(T0 - index * 1000).toISOString(), location: null,
+    country: 'ID', title: `Headline ${index}`, severity: 'info', raw: {},
+  }));
+  const oldQuake = quake('old', { timestamp: new Date(T0 - 2 * 86_400_000).toISOString() });
+  const engine = createIntelEngine({
+    providers: [provider('mixed', { events: () => [oldQuake, ...news] })],
+    pack,
+    log: { log() {}, warn() {} },
+  });
+  await engine.sweep({ force: true });
+  assert.ok(!engine.getEvents({ limit: 10 }).some((event) => event.id === 'old'), 'an unsplit capped read loses the older quake');
+  assert.deepEqual(engine.getEvents({ limit: 10, excludeTypes: ['news'] }).map((event) => event.id), ['old']);
+  assert.equal(engine.getEvents({ limit: 10, types: ['news'] }).length, 10);
+});
+
+test('the Indonesia scope keeps Indonesian events that have no position; a drawn bbox does not', async () => {
+  const engine = createIntelEngine({
+    providers: [provider('mixed', {
+      events: () => [
+        { id: 'headline', type: 'news', timestamp: new Date(T0).toISOString(), location: null, country: 'ID', title: 'Headline without a place', severity: 'info', raw: {} },
+        { id: 'foreign', type: 'news', timestamp: new Date(T0).toISOString(), location: null, country: 'JP', title: 'Foreign headline', severity: 'info', raw: {} },
+        { id: 'tokyo', type: 'earthquake', timestamp: new Date(T0).toISOString(), location: { lat: 35.7, lon: 139.7 }, country: 'JP', title: 'Quake in Japan', severity: 'medium', raw: {} },
+        quake('bandung'),
+      ],
+    })],
+    pack,
+    log: { log() {}, warn() {} },
+  });
+  await engine.sweep({ force: true });
+  assert.deepEqual(engine.getEvents().map((event) => event.id).sort(), ['bandung', 'headline'], 'default scope: positioned inside Indonesia plus unpositioned Indonesian');
+  assert.deepEqual(engine.getEvents({ scope: 'bbox:105,-8,109,-5' }).map((event) => event.id), ['bandung'], 'a drawn area only contains positioned events');
+});
+
+test('a rate-limited provider (HTTP 429) waits at least 30 minutes instead of retrying every 2', async () => {
+  const clock = makeClock();
+  const limited = {
+    ...provider('limited', { intervalMs: 60_000 }),
+    calls: undefined,
+  };
+  let limitedCalls = 0;
+  limited.fetch = async () => {
+    limitedCalls += 1;
+    const error = new Error('HTTP 429 from api.gdeltproject.org: Please limit requests');
+    error.status = 429;
+    throw error;
+  };
+  const down = provider('down', { intervalMs: 60_000, fail: true });
+  const engine = createIntelEngine({ providers: [limited, down], pack, log: { log() {}, warn() {} }, now: clock.now, setTimer: clock.setTimer, clearTimer: clock.clearTimer, tickMs: 60_000 });
+  engine.start({ firstSweepDelayMs: 1000 });
+  clock.advance(1000);
+  await clock.runDue();
+  assert.equal(limitedCalls, 1);
+  assert.equal(down.calls(), 1);
+
+  for (let minute = 0; minute < 5; minute += 1) {
+    clock.advance(60_000);
+    await clock.runDue();
+  }
+  assert.ok(down.calls() >= 2, 'an ordinary failure retries after two minutes');
+  assert.equal(limitedCalls, 1, 'a 429 does not');
+
+  for (let minute = 0; minute < 27; minute += 1) {
+    clock.advance(60_000);
+    await clock.runDue();
+  }
+  assert.equal(limitedCalls, 2, 'the rate-limited provider retries after its 30-minute backoff');
+  engine.stop();
 });

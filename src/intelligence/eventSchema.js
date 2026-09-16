@@ -165,20 +165,27 @@ export function mergeEvents(...lists) {
  */
 export function filterEvents(events, {
   types = null,
+  excludeTypes = null,
   sinceMs = null,
   untilMs = null,
   minSeverity = null,
   provinceCode = null,
   bbox = null,
+  unlocatedCountry = null,
   statuses = null,
   limit = null,
 } = {}) {
   const typeSet = Array.isArray(types) && types.length ? new Set(types) : null;
+  // Results are newest-first and capped by `limit`, so a high-volume type
+  // (news) would otherwise push older disaster events out of every capped
+  // query. Callers split those reads with `excludeTypes`.
+  const excludeSet = Array.isArray(excludeTypes) && excludeTypes.length ? new Set(excludeTypes) : null;
   const statusSet = Array.isArray(statuses) && statuses.length ? new Set(statuses) : null;
   const minRank = minSeverity ? severityRank(minSeverity) : 0;
   const out = [];
   for (const event of sortEvents(events)) {
     if (typeSet && !typeSet.has(event.type)) continue;
+    if (excludeSet && excludeSet.has(event.type)) continue;
     if (statusSet && !statusSet.has(event.status)) continue;
     if (severityRank(event.severity) < minRank) continue;
     const ms = Date.parse(event.timestamp);
@@ -186,10 +193,15 @@ export function filterEvents(events, {
     if (untilMs !== null && ms > untilMs) continue;
     if (provinceCode && event.provinceCode !== provinceCode) continue;
     if (bbox) {
-      if (!event.location) continue;
-      const [west, south, east, north] = bbox;
-      if (event.location.lon < west || event.location.lon > east
-        || event.location.lat < south || event.location.lat > north) continue;
+      if (!event.location) {
+        // An unpositioned event can only pass a bbox when the caller names the
+        // country that bbox stands for (the Indonesia scope does).
+        if (!unlocatedCountry || event.country !== unlocatedCountry) continue;
+      } else {
+        const [west, south, east, north] = bbox;
+        if (event.location.lon < west || event.location.lon > east
+          || event.location.lat < south || event.location.lat > north) continue;
+      }
     }
     out.push(event);
     if (limit && out.length >= limit) break;
