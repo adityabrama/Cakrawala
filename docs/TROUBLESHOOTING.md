@@ -12,8 +12,18 @@ fail independently — one down source never blocks the others.
 `gdelt-indonesia` rate-limits to one request per 5 s and is flaky on some
 networks; `bnpb-weekly` and `magma-volcano` are government servers that
 occasionally answer 500 or slowly. The engine backs off and retries at a
-quarter of the source's cadence (at least 2 min). Events already received
-stay on the map with their original timestamps.
+quarter of the source's cadence (at least 2 min) — or after 30 min when the
+source answered HTTP 429, since retrying sooner only extends a rate limit.
+Events already received stay on the map with their original timestamps.
+
+**GDELT shows HTTP 429 but the NEWS tab is full.** Expected: GDELT is the
+secondary news source. `indonesia-news` polls twelve publisher RSS feeds
+independently; SOURCES shows how many are reporting (`12/12 feeds reporting`)
+and names any that are not. A feed that drops out serves its last headlines
+until they age past 72 h, and the provider only turns red when every feed
+fails at once. After a restart the first sweep can lose a few feeds to a
+congested connection; each is retried once and all return on the next sweep
+10 min later.
 
 **ReliefWeb shows NOT CONFIGURED.** Expected without `RELIEFWEB_APPNAME`
 (the API answers HTTP 410 to unregistered app names since Nov 2025).

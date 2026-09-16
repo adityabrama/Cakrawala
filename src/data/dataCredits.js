@@ -238,6 +238,15 @@ export const DATA_CREDITS = [
       '<a href="https://www.gdeltproject.org" target="_blank" rel="noopener">gdeltproject.org</a>',
   },
   {
+    key: 'indonesia-news-rss',
+    html:
+      'Indonesia news headlines (RSS, headline and link only): ' +
+      '<a href="https://www.antaranews.com" target="_blank" rel="noopener">ANTARA</a>, ' +
+      '<a href="https://setkab.go.id" target="_blank" rel="noopener">Sekretariat Kabinet RI</a>, ' +
+      'detikNews, CNN Indonesia, CNBC Indonesia, Liputan6, Okezone, JPNN, Republika, ' +
+      'BBC News Indonesia, SINDOnews and Media Indonesia — articles open on each publisher\'s site',
+  },
+  {
     key: 'open-meteo',
     html:
       'Weather &amp; air quality: ' +

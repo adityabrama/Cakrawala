@@ -81,6 +81,7 @@ and in `docs/INDONESIA-DATA-SOURCES.md`. Summary:
 | PVMBG MAGMA Indonesia (tingkat aktivitas gunung api — public web table) | Public information of Badan Geologi/PVMBG; attribution; **parsed from an HTML page, so labelled `web-table`** | "PVMBG / MAGMA Indonesia" |
 | Wikidata (volcano positions) | CC0 | "Wikidata" |
 | GDELT | Free for use with citation | "GDELT Project" |
+| Indonesian news RSS (ANTARA, Setkab, national outlets) | Publisher RSS feeds, published for syndication of headlines | Each headline names its outlet and links to the article; only headline, link and time are stored — never the description or body |
 | NASA FIRMS | NASA open data | existing credit |
 | Open-Meteo | CC BY 4.0 | "Weather data by Open-Meteo.com" |
 | World Bank Indicators API | CC BY 4.0 | "World Bank" |

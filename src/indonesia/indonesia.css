@@ -138,8 +138,8 @@
 
 .idn-tabs { display: flex; gap: 2px; }
 .idn-tab {
-  flex: 1; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-dim);
-  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.4px; cursor: pointer;
+  flex: 1 1 auto; min-width: 0; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-dim);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.9px; cursor: pointer; white-space: nowrap;
 }
 .idn-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .idn-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; }

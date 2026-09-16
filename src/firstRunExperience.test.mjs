@@ -661,13 +661,15 @@ test('the voice TOOL SCHEMA is byte-identical to main — the mission mapping is
   // Re-pinned 2026-09-15: the Indonesia integration DELIBERATELY adds nine
   // tools (Indonesia mode, GIS map mode, brief, event queries, source status,
   // timeline, distance, buffer) and the two intelligence layers to
-  // set_layer_visibility's enum. The guarded claim is unchanged: first-run
-  // missions ride existing tools, and any NEW drift from this recorded
-  // schema still fails here.
-  assert.equal(block.length, 37482, 'tool schema byte length drifted from the pinned release schema');
+  // set_layer_visibility's enum.
+  // Re-pinned 2026-09-16: set_indonesia_mode's `tab` enum DELIBERATELY gains
+  // 'news' for the new NEWS tab of the Indonesia command center. The guarded
+  // claim is unchanged: first-run missions ride existing tools, and any NEW
+  // drift from this recorded schema still fails here.
+  assert.equal(block.length, 37490, 'tool schema byte length drifted from the pinned release schema');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    '1ab67d25547eaa7b6fc6f35b9c27c6aac1aa6670eeac420383e5e7e389f4903a',
+    '9f6ee2f679c59a19e6d8d93d3c4d69707b9ac58e7e54e4210c08f2a29384634e',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
 

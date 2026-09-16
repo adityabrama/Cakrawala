@@ -314,6 +314,7 @@ losing your place.
 |-----|---------------|---------|
 | **ALERTS** | Rule-based alert center (INFO → CRITICAL): tsunami potential, M5+ earthquakes, volcano Level III/IV, BNPB casualty reports, severe forecasts, escalations. Every alert names its source, timestamp, rule, and confidence. | BMKG, USGS, PVMBG, BNPB |
 | **EVENTS** | Disaster center: earthquakes, volcano activity levels, floods, landslides, fires, weather, news — filter by type, province, and a scrubbable timeline (1 h → 30 d, with playback). Click an event to fly to it; related signals are listed as *correlated*, never as causes. | BMKG, USGS, BNPB, PVMBG/MAGMA, GDELT |
+| **NEWS** | Indonesian headlines refreshed every 10 minutes, newest first, with topic chips (Bencana, Transport, Ekonomi, Kesehatan, Umum). Select a headline to open the article on the publisher's site, or fly to it when a place name was recognised. Headline and link only. | ANTARA, Setkab, detikNews, CNN Indonesia, CNBC Indonesia, Liputan6, Okezone, JPNN, Republika, BBC News Indonesia, SINDOnews, Media Indonesia (RSS); GDELT |
 | **WEATHER** | Official BMKG 3-hourly forecast for 26 cities, and Open-Meteo weather + air quality at any point (map centre or a GIS click). Forecasts are labelled MODELED. | BMKG, Open-Meteo |
 | **BRIEF** | Indonesia or province brief: a source-stamped summary of the notable signals in the window. No language model needed. | engine |
 | **ECONOMY** | GDP, growth, inflation, unemployment, population, poverty (annual) and IDR reference rates. | World Bank, ECB via Frankfurter |

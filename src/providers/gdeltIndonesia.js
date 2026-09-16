@@ -15,21 +15,25 @@ export const GDELT_MIN_INTERVAL_MS = 5_500;
 
 let lastRequestAt = 0;
 
+// Whole words only. Substring matching mislabelled a large share of headlines
+// once RSS feeds multiplied the volume: "port" matched report/sport/import,
+// "jalan" matched berjalan/perjalanan, "tol" matched Bristol, and a bare
+// "gunung" turned every Gunung Kidul story into a volcano.
 const TOPIC_RULES = Object.freeze([
-  [/banjir|flood/i, 'flood'],
-  [/gempa|earthquake|quake/i, 'earthquake'],
-  [/tsunami/i, 'tsunami'],
-  [/erupsi|gunung|volcan|letusan/i, 'volcano'],
-  [/kebakaran|karhutla|wildfire|fire/i, 'fire'],
-  [/longsor|landslide/i, 'landslide'],
-  [/cuaca|hujan|badai|angin|weather|storm|cyclone/i, 'weather'],
-  [/kabut asap|haze|smog/i, 'haze'],
-  [/kekeringan|drought/i, 'drought'],
-  [/bandara|airport|penerbangan|flight|pesawat|aircraft/i, 'aviation'],
-  [/pelabuhan|port|kapal|vessel|ship|ferry|maritime/i, 'maritime'],
-  [/tol|macet|traffic|kereta|train|railway|jalan/i, 'transport'],
-  [/inflasi|rupiah|ekonomi|economy|gdp|export|impor|tarif/i, 'economy'],
-  [/wabah|outbreak|dengue|malaria|health|kesehatan/i, 'health'],
+  [/\b(banjir|floods?|flooding)\b/i, 'flood'],
+  [/\b(gempa|gempabumi|earthquakes?|quakes?)\b/i, 'earthquake'],
+  [/\btsunami\b/i, 'tsunami'],
+  [/\b(erupsi|gunung ?api|letusan|awan panas|lahar|volcano(es)?|volcanic|eruption)\b/i, 'volcano'],
+  [/\b(kebakaran|karhutla|terbakar|wildfires?|fires?)\b/i, 'fire'],
+  [/\b(longsor|landslides?)\b/i, 'landslide'],
+  [/\b(cuaca|hujan|badai|angin kencang|puting beliung|siklon|weather|storms?|cyclones?)\b/i, 'weather'],
+  [/\b(kabut asap|haze|smog)\b/i, 'haze'],
+  [/\b(kekeringan|kemarau|droughts?)\b/i, 'drought'],
+  [/\b(bandara|airports?|penerbangan|maskapai|pesawat|flights?|aircraft|airlines?)\b/i, 'aviation'],
+  [/\b(pelabuhan|kapal|nelayan|maritim|ports?|vessels?|ships?|ferry|ferries|maritime)\b/i, 'maritime'],
+  [/\b(jalan tol|tol|macet|kemacetan|kereta|krl|mrt|lrt|transjakarta|traffic|trains?|railways?)\b/i, 'transport'],
+  [/\b(inflasi|rupiah|ekonomi|ekspor|impor|pdb|economy|gdp|exports?|imports?|tariffs?)\b/i, 'economy'],
+  [/\b(wabah|dbd|demam berdarah|malaria|kesehatan|outbreak|dengue|health)\b/i, 'health'],
 ]);
 
 /** Topic subtype for a headline; 'general' when nothing matches. */

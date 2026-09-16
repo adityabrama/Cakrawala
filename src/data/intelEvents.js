@@ -218,7 +218,15 @@ export function createIntelEventsLayer({ id, name, icon, source, types = null, n
     async update() {
       _loading = true;
       try {
-        const payload = await intelClient.getEvents({ hours: FETCH_HOURS, limit: maxPoints, types: types || undefined });
+        // Split the read by type at the server: the API returns newest-first
+        // under a limit, so hundreds of fresh headlines would otherwise push
+        // days-old quakes and BNPB reports out of the signals layer.
+        const payload = await intelClient.getEvents({
+          hours: FETCH_HOURS,
+          limit: maxPoints,
+          types: types || (newsOnly ? ['news'] : undefined),
+          exclude: !types && !newsOnly ? ['news'] : undefined,
+        });
         _events = Array.isArray(payload.events) ? payload.events : [];
         _stale = Boolean(payload.stale);
         _lastError = payload.stale ? (payload.staleReason || 'stale') : null;

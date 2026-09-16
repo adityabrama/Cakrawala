@@ -208,5 +208,6 @@ test('attachAdministrative prefers the polygon locator and falls back to name ma
   assert.deepEqual([located.city, located.provinceCode, located.province], ['Kota Bandung', '32', 'Jawa Barat']);
   const named = attachAdministrative({ location: null }, pack, 'Gempa dirasakan di Medan');
   assert.deepEqual([named.provinceCode, named.province], ['12', 'Sumatera Utara']);
-  assert.equal(SWEEP_PROVIDERS.length, 9);
+  // 10 since the RSS news provider joined GDELT (2026-09-16).
+  assert.equal(SWEEP_PROVIDERS.length, 10);
 });

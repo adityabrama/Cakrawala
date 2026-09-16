@@ -6469,7 +6469,7 @@ const GEV_REALTIME_TOOLS = [
         enabled: { type: 'boolean' },
         province: { type: 'string', description: 'Province code or name; empty string clears the focus.' },
         openPanel: { type: 'boolean', description: 'Open the Indonesia command center drawer.' },
-        tab: { type: 'string', enum: ['alerts', 'events', 'weather', 'brief', 'economy', 'sources'] },
+        tab: { type: 'string', enum: ['alerts', 'events', 'news', 'weather', 'brief', 'economy', 'sources'] },
       },
     },
   },

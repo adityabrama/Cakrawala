@@ -23,8 +23,24 @@ import { createGisPanel } from '../gis/gisPanel.js';
 import { createMapModeController } from '../gis/mapModeController.js';
 
 const TABS = Object.freeze([
-  ['alerts', 'ALERTS'], ['events', 'EVENTS'], ['weather', 'WEATHER'], ['brief', 'BRIEF'], ['economy', 'ECONOMY'], ['sources', 'SOURCES'],
+  ['alerts', 'ALERTS'], ['events', 'EVENTS'], ['news', 'NEWS'], ['weather', 'WEATHER'], ['brief', 'BRIEF'], ['economy', 'ECONOMY'], ['sources', 'SOURCES'],
 ]);
+
+/** NEWS tab topic chips → headline subtypes (see classifyHeadline). */
+const NEWS_TOPICS = Object.freeze([
+  ['all', 'All', null],
+  ['hazard', 'Bencana', ['flood', 'earthquake', 'tsunami', 'volcano', 'fire', 'landslide', 'weather', 'haze', 'drought']],
+  ['transport', 'Transport', ['transport', 'aviation', 'maritime']],
+  ['economy', 'Ekonomi', ['economy']],
+  ['health', 'Kesehatan', ['health']],
+  ['general', 'Umum', ['general']],
+]);
+const NEWS_ROW_LIMIT = 150;
+
+/** Outlet name for a news event (RSS carries it; GDELT carries the domain). */
+function newsOutlet(event) {
+  return event?.raw?.outlet || event?.raw?.domain || event?.source || '';
+}
 const LEVEL_CLASS = Object.freeze({ CRITICAL: 'crit', HIGH: 'high', MEDIUM: 'med', LOW: 'low', INFO: 'info' });
 const FETCH_HOURS = 24 * 30;
 
@@ -105,6 +121,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
   const state = indonesiaState;
 
   let activeTab = 'alerts';
+  let newsTopic = 'all';
   let status = null;
   let alerts = [];
   let events = [];
@@ -217,7 +234,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
       h('span', { class: 'idn-event-main' }, [
         h('span', { class: 'idn-event-title', text: event.title }),
         h('span', { class: 'idn-event-meta', text: [
-          event.type.toUpperCase(), event.province || event.city || null, timeAgo(event.timestamp), statusLabel(event.status), event.source,
+          event.type.toUpperCase(), event.province || event.city || null, timeAgo(event.timestamp), statusLabel(event.status), event.type === 'news' ? newsOutlet(event) : event.source,
           showDistance && Number.isFinite(event.distanceKm) ? `${event.distanceKm.toFixed(0)} km` : null,
         ].filter(Boolean).join(' · ') }),
       ]),
@@ -285,6 +302,53 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
       h('div', { class: 'idn-chip-row' }, typeChips),
       h('div', { class: 'idn-section-title', text: `DISASTER CENTER · ${list.length} events in window${eventsStale ? ' · CACHED' : ''}` }),
       list.length ? h('div', { class: 'idn-list' }, list.map((event) => eventRow(event))) : h('div', { class: 'idn-empty', text: 'No events match the current filters, window, and province.' }),
+    );
+    syncControls();
+  }
+
+  /**
+   * NEWS: every headline in the timeline window and province, newest first.
+   * Independent of the EVENTS type chips (which sort severity-first, so
+   * `info` headlines always sank below disasters and past the row cap).
+   */
+  function renderNews() {
+    const current = state.get();
+    const [sinceMs, untilMs] = timelineWindow(current);
+    const graceMs = 6 * 3_600_000;
+    const news = events
+      .filter((event) => event?.type === 'news')
+      .filter((event) => {
+        const ms = Date.parse(event.timestamp);
+        return Number.isFinite(ms) && ms >= sinceMs && ms <= untilMs + graceMs;
+      })
+      .filter((event) => !current.provinceCode || event.provinceCode === current.provinceCode)
+      .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+    const topicOf = (event) => NEWS_TOPICS.find(([, , subtypes]) => subtypes?.includes(event.subtype))?.[0] || 'general';
+    const counts = {};
+    for (const event of news) counts[topicOf(event)] = (counts[topicOf(event)] || 0) + 1;
+    const shown = newsTopic === 'all' ? news : news.filter((event) => topicOf(event) === newsTopic);
+    const outlets = new Set(news.map(newsOutlet).filter(Boolean));
+    const chips = NEWS_TOPICS.map(([id, label]) => h('button', {
+      type: 'button',
+      class: `idn-chip${newsTopic === id ? ' active' : ''}`,
+      'aria-pressed': String(newsTopic === id),
+      text: id === 'all' ? `${label} ${news.length}` : `${label} ${counts[id] || 0}`,
+      onclick: () => { newsTopic = id; renderNews(); },
+    }));
+    const row = (event) => h('button', { type: 'button', class: `idn-event${selected?.id === event.id ? ' selected' : ''}`, onclick: () => selectEvent(event, { fly: Boolean(event.location) }) }, [
+      h('span', { class: 'idn-dot sev-info', style: `--dot-color:${EVENT_TYPE_COLORS.news || EVENT_TYPE_COLORS.other}` }),
+      h('span', { class: 'idn-event-main' }, [
+        h('span', { class: 'idn-event-title', text: event.title }),
+        h('span', { class: 'idn-event-meta', text: [newsOutlet(event), event.city || event.province || null, timeAgo(event.timestamp)].filter(Boolean).join(' · ') }),
+      ]),
+    ]);
+    body.replaceChildren(
+      h('div', { class: 'idn-chip-row' }, chips),
+      h('div', { class: 'idn-section-title', text: `NEWS · ${shown.length} headlines · ${outlets.size} outlets${shown.length > NEWS_ROW_LIMIT ? ` · newest ${NEWS_ROW_LIMIT} shown` : ''}${eventsStale ? ' · CACHED' : ''}` }),
+      shown.length
+        ? h('div', { class: 'idn-list' }, shown.slice(0, NEWS_ROW_LIMIT).map(row))
+        : h('div', { class: 'idn-empty', text: news.length ? 'No headlines on this topic in the window.' : 'No headlines in the current window and province yet.' }),
+      h('div', { class: 'idn-note', text: 'Headlines and links only — ANTARA, Setkab and national outlets via RSS, plus GDELT. Places are estimated from names in the headline. Select a headline to open the article on the publisher site.' }),
     );
     syncControls();
   }
@@ -419,6 +483,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
           h('span', { class: 'idn-event-title', text: `${entry.name} · ${entry.category}` }),
           h('span', { class: 'idn-event-meta', text: `${entry.auth === 'keyless' ? 'keyless' : `key: ${entry.envKey || entry.auth}`} · every ${Math.round(entry.intervalMs / 60_000)} min · ${entry.eventCount} events · ${entry.lastRunAt ? `run ${timeAgo(entry.lastRunAt)} (${entry.durationMs} ms)` : 'not run yet'}` }),
           entry.error ? h('span', { class: 'idn-event-meta err', text: entry.error }) : null,
+          entry.feeds ? h('span', { class: `idn-event-meta${entry.feeds.failing.length ? ' err' : ''}`, text: `${entry.feeds.ok}/${entry.feeds.total} feeds reporting${entry.feeds.failing.length ? ` · not reporting: ${entry.feeds.failing.map((feed) => `${feed.outlet}${feed.state === 'stale' ? ' (serving cached)' : ''}`).join(', ')}` : ''}` }) : null,
           h('span', { class: 'idn-event-meta', text: `${entry.attribution}${entry.license ? ` · ${entry.license}` : ''}` }),
           entry.sourceUrl ? h('a', { class: 'idn-link', href: entry.sourceUrl, target: '_blank', rel: 'noopener noreferrer', text: entry.sourceUrl }) : null,
         ]),
@@ -433,7 +498,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
       button.classList.toggle('active', active);
       button.setAttribute('aria-selected', String(active));
     }
-    ({ alerts: renderAlerts, events: renderEvents, weather: renderWeather, brief: renderBrief, economy: renderEconomy, sources: renderSources })[activeTab]?.();
+    ({ alerts: renderAlerts, events: renderEvents, news: renderNews, weather: renderWeather, brief: renderBrief, economy: renderEconomy, sources: renderSources })[activeTab]?.();
   }
 
   // ── data ───────────────────────────────────────────────────────────────
@@ -456,21 +521,28 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
     if (activeTab === 'alerts') renderAlerts();
   }
   async function refreshEvents() {
-    const layer = eventsLayer();
-    const cached = [...(layer?.getEvents?.() || []), ...(newsLayer()?.getEvents?.() || [])];
-    if (cached.length) {
-      events = cached;
-      eventsStale = false;
-    } else {
+    // Signals and news are read separately: the API is newest-first under a
+    // limit, so fresh headlines must never crowd older disaster events out.
+    // A layer's cache is only trusted while that layer is on — a disabled
+    // layer stops refreshing, and the drawer must still show current news
+    // (and signals) with the globe layers off.
+    const read = async (layerId, layer, query) => {
+      const cached = dataManager?.isEnabled?.(layerId) ? layer?.getEvents?.() : null;
+      if (cached?.length) return { events: cached, stale: false };
       try {
-        const payload = await intelClient.getEvents({ hours: FETCH_HOURS, limit: 2000 });
-        events = payload.events || [];
-        eventsStale = Boolean(payload.stale);
+        return await intelClient.getEvents(query);
       } catch {
-        eventsStale = true;
+        return null;
       }
-    }
-    if (activeTab === 'events') renderEvents();
+    };
+    const [signals, news] = await Promise.all([
+      read('id-events', eventsLayer(), { hours: FETCH_HOURS, limit: 2000, exclude: ['news'] }),
+      read('id-news', newsLayer(), { hours: FETCH_HOURS, limit: 800, types: ['news'] }),
+    ]);
+    // Keep the last good list when both reads fail rather than blanking it.
+    if (signals || news) events = [...(signals?.events || []), ...(news?.events || [])];
+    eventsStale = !signals || !news || Boolean(signals.stale || news.stale);
+    if (activeTab === 'events') renderEvents(); else if (activeTab === 'news') renderNews();
     gisPanel?.refreshEvents();
   }
   async function refreshAll() {
@@ -494,7 +566,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
     selected = event || null;
     state.set({ selectedEventId: selected?.id || null });
     renderDetail();
-    if (activeTab === 'events') renderEvents();
+    if (activeTab === 'events') renderEvents(); else if (activeTab === 'news') renderNews();
     if (!selected) { eventsLayer()?.selectEvent?.(null); return; }
     if (fly && selected.location) {
       if (state.get().mapMode === 'gis' && gisMap) {
@@ -659,13 +731,13 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
   root.addEventListener('keydown', (event) => { if (event.key === 'Escape') { event.stopPropagation(); close(); } });
   window.addEventListener('gev:intel-event-selected', (event) => {
     const picked = event.detail?.event || null;
-    if (picked && picked.id !== selected?.id) { selected = picked; state.set({ selectedEventId: picked.id }); renderDetail(); if (activeTab === 'events') renderEvents(); if (root.hidden) open(); }
+    if (picked && picked.id !== selected?.id) { selected = picked; state.set({ selectedEventId: picked.id }); renderDetail(); if (activeTab === 'events') renderEvents(); else if (activeTab === 'news') renderNews(); if (root.hidden) open(); }
     else if (!picked && selected) { selected = null; state.set({ selectedEventId: null }); renderDetail(); }
   });
   state.subscribe((_, changed) => {
     syncControls();
     if (changed.some((key) => ['timelineHours', 'timelineUntilMs', 'typeGroups', 'provinceCode'].includes(key))) {
-      if (activeTab === 'events') renderEvents();
+      if (activeTab === 'events') renderEvents(); else if (activeTab === 'news') renderNews();
       gisPanel?.refreshEvents();
     }
   });

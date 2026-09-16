@@ -10,6 +10,7 @@ import usgsIndonesiaProvider from './usgsIndonesia.js';
 import bnpbWeeklyProvider from './bnpbWeekly.js';
 import magmaVolcanoProvider from './magmaVolcano.js';
 import gdeltIndonesiaProvider from './gdeltIndonesia.js';
+import indonesiaNewsProvider from './indonesiaNews.js';
 import bmkgWeatherProvider from './bmkgWeather.js';
 import worldBankProvider from './worldBank.js';
 import frankfurterProvider from './frankfurter.js';
@@ -21,6 +22,8 @@ export const SWEEP_PROVIDERS = Object.freeze([
   usgsIndonesiaProvider,
   bnpbWeeklyProvider,
   magmaVolcanoProvider,
+  // Primary news source; GDELT stays as a secondary one (see indonesiaNews.js).
+  indonesiaNewsProvider,
   gdeltIndonesiaProvider,
   bmkgWeatherProvider,
   worldBankProvider,

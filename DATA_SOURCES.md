@@ -32,7 +32,8 @@ How to read this:
 | **BNPB GIS** (Kejadian Bencana Mingguan; Hosted/Admin_kabkot_2023) | Compiled disaster reports per kabupaten; the 514 kabupaten/kota boundaries (Kemendagri) used by the GIS map | Public ArcGIS services of BNPB; attribution | "BNPB Pusdatinkom / Kemendagri" |
 | **PVMBG — MAGMA Indonesia** | Activity level (I–IV) of every monitored volcano, parsed from the public status table (labelled `web-table`) | Public information of Badan Geologi; attribution | "PVMBG / MAGMA Indonesia" |
 | **Wikidata** | Volcano positions and elevations (bundled snapshot) | CC0 | "Wikidata" |
-| **GDELT DOC 2.0** | Indonesia news headlines, links, outlets (metadata only; location estimated from place names) | GDELT terms of use (citation) | "The GDELT Project" |
+| **Indonesian news RSS** (ANTARA, Sekretariat Kabinet RI, detikNews, CNN Indonesia, CNBC Indonesia, Liputan6, Okezone, JPNN, Republika, BBC News Indonesia, SINDOnews, Media Indonesia) | Primary Indonesia news feed: headline, link, outlet and publication time (location estimated from place names) | Publisher RSS feeds; headlines and links only, articles stay on the publisher sites | Each headline names its outlet and links to the article |
+| **GDELT DOC 2.0** | Secondary Indonesia news headlines, links, outlets (metadata only; location estimated from place names) | GDELT terms of use (citation) | "The GDELT Project" |
 | **Open-Meteo** (forecast + air-quality APIs) | Weather and CAMS air quality at any point (map centre, GIS click); labelled MODELED | CC BY 4.0 | "Weather data by Open-Meteo.com" |
 | **World Bank Indicators API** | Indonesia GDP, growth, inflation, unemployment, population, poverty | CC BY 4.0 | "World Bank Open Data" |
 | **Frankfurter** (ECB reference rates) | IDR per USD/EUR/SGD/JPY/CNY (DELAYED, daily) | Free; ECB reference rates | "Frankfurter / ECB" |
