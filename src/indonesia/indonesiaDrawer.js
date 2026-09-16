@@ -673,6 +673,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
 
   function open() {
     root.hidden = false;
+    document.body.classList.add('idn-drawer-open');
     navButton?.setAttribute('aria-expanded', 'true');
     navButton?.classList.add('active');
     ensurePack().then(() => refreshAll());
@@ -681,6 +682,7 @@ export function initIndonesiaCommandCenter({ viewer, dataManager, shareLinkManag
   }
   function close() {
     root.hidden = true;
+    document.body.classList.remove('idn-drawer-open');
     navButton?.setAttribute('aria-expanded', 'false');
     navButton?.classList.remove('active');
   }

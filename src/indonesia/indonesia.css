@@ -231,6 +231,18 @@ body.gis-mode #cctv-sync-chip { visibility: hidden; pointer-events: none; }
    may sit above the map or the analysis panel. */
 body.gis-mode #left-panel-stack *,
 body.gis-mode #right-context-rail * { visibility: hidden !important; pointer-events: none !important; }
+/* The drawer is right-anchored above the right context rail (z 160 vs 110),
+   so opening it buried #pp-toggles, #cctv-panel and #global-context-panel.
+   Wide viewports slide the whole rail clear of the drawer — nothing is lost.
+   Narrower ones cannot hold both side by side, so the rail steps aside until
+   the drawer closes (same treatment cockpit mode already gives it). */
+body.idn-drawer-open #right-context-rail { display: none; }
+@media (min-width: 1200px) {
+  body.idn-drawer-open #right-context-rail {
+    display: flex;
+    right: calc(var(--right-rail-x) + 390px);
+  }
+}
 .gis-panel {
   position: absolute; top: 88px; left: 20px; width: min(340px, calc(100vw - 40px)); max-height: calc(100vh - 130px); overflow-y: auto; z-index: 3;
   display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border);

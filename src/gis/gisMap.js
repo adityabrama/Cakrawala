@@ -244,9 +244,12 @@ export function createGisMap({ container, onFeatureClick = () => {}, onMapClick 
       applyVisibility();
     },
     setEvents(events) {
+      // Label lookup goes through a Map: the previous per-feature find() made
+      // this quadratic, and the timeline republishes the whole set as it plays.
+      const byId = new Map((events || []).map((event) => [event.id, event]));
       const collection = eventsToGeoJson(events);
       for (const feature of collection.features) {
-        const event = events.find((entry) => entry.id === feature.properties.id);
+        const event = byId.get(feature.properties.id);
         feature.properties.label = event ? shortEventLabel(event) : '';
       }
       setData('events', collection);

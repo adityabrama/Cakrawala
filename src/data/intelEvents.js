@@ -61,14 +61,48 @@ export function createIntelEventsLayer({ id, name, icon, source, types = null, n
   let _clickHandler = null;
   let _selectedId = null;
   let _unsubscribe = [];
+  let _paintHandle = null;
+  let _paintPending = false;
 
   const typeSet = types ? new Set(types) : null;
   const accepts = (event) => (newsOnly ? event.type === 'news' : event.type !== 'news') && (!typeSet || typeSet.has(event.type));
 
-  function rebuild() {
+  /**
+   * Recompute the visible set, then repaint the globe. The filter is cheap and
+   * stays synchronous so the voice analyst and the GIS panel always read a
+   * current set; the expensive primitive/label churn is coalesced into one
+   * animation frame (see schedulePaint) unless the caller needs it now.
+   */
+  function rebuild({ immediate = false } = {}) {
     if (!_points) return;
     const state = indonesiaState.get();
     _visible = filterEventsForView(_events.filter(accepts), state, { locatedOnly: true }).slice(0, maxPoints);
+    if (immediate) paint();
+    else schedulePaint();
+  }
+
+  /**
+   * Timeline playback publishes a new cursor every 300 ms and a single user
+   * action can change several state keys at once. Without coalescing, each one
+   * tore down and re-added every point primitive and republished every label
+   * synchronously — for both intel layers — inside the same frame.
+   */
+  function schedulePaint() {
+    if (_paintHandle !== null) return;
+    _paintHandle = requestAnimationFrame(() => {
+      _paintHandle = null;
+      paint();
+    });
+  }
+
+  /**
+   * Publish the visible set to the globe. A disabled layer draws nothing, so
+   * the work is skipped and remembered; enable() repaints from current state.
+   */
+  function paint() {
+    if (!_points) return;
+    if (!_enabled) { _paintPending = true; return; }
+    _paintPending = false;
     _points.removeAll();
     _byId = new Map();
     const nowMs = Date.now();
@@ -109,16 +143,14 @@ export function createIntelEventsLayer({ id, name, icon, source, types = null, n
         verticalOnly: true,
         placement: 'above',
       }));
-    if (_enabled) {
-      setOverlayEntries(id, labels, { cohortLimit: labelLimit, collisionCapacity: 48, moving: false });
-    }
+    setOverlayEntries(id, labels, { cohortLimit: labelLimit, collisionCapacity: 48, moving: false });
     governorRequestRender(`${id}-rebuild`);
   }
 
   function selectEvent(eventId, { fly = true } = {}) {
     const entry = _byId.get(eventId) || null;
     _selectedId = entry ? eventId : null;
-    rebuild();
+    rebuild({ immediate: true });
     if (entry && fly && _viewer) {
       flyToPoint(_viewer, entry.event.location.lat, entry.event.location.lon, { heightM: heightForEventType(entry.event.type) });
     }
@@ -170,7 +202,7 @@ export function createIntelEventsLayer({ id, name, icon, source, types = null, n
       registerPickOwner(id, (pickedId) => _byId.has(pickedId));
       installClickHandler(viewer);
       setOverlaySourceVisible(id, true);
-      rebuild();
+      rebuild({ immediate: true });
     },
 
     disable() {
@@ -202,6 +234,8 @@ export function createIntelEventsLayer({ id, name, icon, source, types = null, n
     },
 
     destroy(viewer) {
+      if (_paintHandle !== null) { cancelAnimationFrame(_paintHandle); _paintHandle = null; }
+      _paintPending = false;
       layer.disable();
       for (const off of _unsubscribe) off();
       _unsubscribe = [];
